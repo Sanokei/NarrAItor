@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NarrAItor.Utils
+namespace NarrAItor.Utils.Datatypes
 {
     public class MultiMap<TKey, TValue> 
         where TKey : notnull 

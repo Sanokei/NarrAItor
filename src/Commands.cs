@@ -1,4 +1,4 @@
-using NarrAItor.Utils;
+using NarrAItor.Utils.Datatypes;
 
 namespace NarrAItor
 {

@@ -1,6 +1,6 @@
 using System.IO;
 using Newtonsoft.Json;
-using NarrAItor.Narrator.NarratorErrors;
+using NarrAItor.Narrator.NarratorExceptions;
 namespace NarrAItor.Narrator
 {
     public abstract class NarratorObject : INarratable
@@ -51,9 +51,7 @@ namespace NarrAItor.Narrator
             string DirPath = Path.Combine(Directory.GetCurrentDirectory(), path.Equals(DEFAULT_DOCUMENTATION_PATH) ? path : DocumentationPath);
             Dictionary<string, string[]> DocFiles = [];
             foreach (string fileName in Directory.GetFiles(DirPath, "*.md"))
-            {
                 DocFiles.Add(fileName,File.ReadAllLines(fileName));
-            }
             Documentation = JsonConvert.SerializeObject(DocFiles);
             return Documentation;
         }

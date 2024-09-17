@@ -7,14 +7,17 @@ namespace NarrAItor.LLM
         {
             if (maxTokens < 250)
                 Console.WriteLine("A higher token count is recomended.");
-            string apiKey = Environment.GetEnvironmentVariable("BearerToken") ?? throw new Exception($"BearerToken never passed. Usage: --BearerToken \"api-key-here\"");
+            // TODO: maybe use SecureString?
+            string apiKey = Environment.GetEnvironmentVariable("BearerToken") ?? throw new Exception($"BearerToken never passed.\nUsage: --BearerToken \"api-key\"\nor in the config file. \"BearerToken\":\"api-key\"");
             using var api = new AnthropicApi(apiKey);
 
-            var response = await api.CreateMessageAsync(
+            var response = await api.CreateMessageAsync
+            (
                 model: CreateMessageRequestModel.Claude35Sonnet20240620,
                 messages: messages,
-                maxTokens: maxTokens);
-            throw new NotImplementedException();
+                maxTokens: maxTokens
+            );
+            
         }
     }
 }
