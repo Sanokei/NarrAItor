@@ -8,9 +8,7 @@ namespace NarrAItor.Utils.Datatypes
         where TKey : notnull 
         where TValue : notnull
     {
-#pragma warning disable IDE0044 // Add readonly modifier
         private Dictionary<TValue, HashSet<TKey>> _Dictionary = [];
-#pragma warning restore IDE0044 // Add readonly modifier
 
         public MultiMap()
         {

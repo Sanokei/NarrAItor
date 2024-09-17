@@ -6,7 +6,7 @@ namespace NarrAItor.Narrator
     public abstract class NarratorObject : INarratable
     {
         // System Defaults
-        private const string DEFAULT_DOCUMENTATION_PATH = "./docs/";
+        private const string DEFAULT_DOCUMENTATION_PATH = "./Narrator/ChripingNarrator/docs/";
         private const string DEFAULT_DOCUMENTATION = "";
 
         private string _Name = "DefaultNarrator";
@@ -36,19 +36,19 @@ namespace NarrAItor.Narrator
         }
 
         // Gets the Documentation from the path
-        public string? Documentation;
+        public string Documentation = "";
         public string GetDocumentation(string path = DEFAULT_DOCUMENTATION_PATH, bool useCachedDocumentation = true)
         {
-            if(!Directory.Exists(path))
+            string DirPath = Path.Combine(Directory.GetCurrentDirectory(), path.Equals(DEFAULT_DOCUMENTATION_PATH) ? path : DocumentationPath);
+            if(!Directory.Exists(DirPath))
             {
                 Console.WriteLine(Warnings.DOCUMENTATION_PATH_DOES_NOT_EXIST);
                 return DEFAULT_DOCUMENTATION;
             }    
 
-            if(Documentation != null && useCachedDocumentation)
+            if(Documentation != "" && useCachedDocumentation)
                 return Documentation;
 
-            string DirPath = Path.Combine(Directory.GetCurrentDirectory(), path.Equals(DEFAULT_DOCUMENTATION_PATH) ? path : DocumentationPath);
             Dictionary<string, string[]> DocFiles = [];
             foreach (string fileName in Directory.GetFiles(DirPath, "*.md"))
                 DocFiles.Add(fileName,File.ReadAllLines(fileName));

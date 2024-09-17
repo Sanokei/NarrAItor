@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections;
 using NarrAItor.Narrator;
 using NarrAItor.Utils;
+using Newtonsoft.Json;
 
 namespace NarrAItor
 {
@@ -51,17 +52,49 @@ namespace NarrAItor
         static void Main(string[] args)
         {
             // read from config file
-            
+            SetEnviormentFromConfig();
             // break the arg list into flags and parameters
             if(GetKeywordArguments(out Dictionary<string,List<string>> kwargs, args))
                 foreach(var arg in kwargs)
                     if(Commands.CommandList.TryGetCommand(arg.Key, out var action))
+                    // handle kwargs
                         action?.Invoke([.. arg.Value]);
 
             // Create Lua bindings
 
             // Request the LLM Provider
-            ChirpingNarrator Jeff = new();
+            string type = Environment.GetEnvironmentVariable("NarratorType") ?? "";
+        }
+
+        private static void SetEnviormentFromConfig()
+        {
+            string path = "appsettings.json";
+            string DirPath = Path.Combine(Directory.GetCurrentDirectory(), path);
+            Dictionary<string, Dictionary<string, string>> Config = [];
+            if(!File.Exists(DirPath))
+                Console.WriteLine($"Warning: Config file not found.\nExpecting BearerToken by CLI.\nPath at {DirPath}");
+            try
+            {
+                Config = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(string.Join("", File.ReadAllLines(DirPath))) ?? [];
+                if(Config.Equals(new Dictionary<string, Dictionary<string, string>>()))
+                    Console.WriteLine($"Warning: Config file found, but empty.\nExpecting BearerToken by CLI.\nPath at {DirPath}");
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"Warning: Error parsing Config file: {ex.Message}\nExpecting BearerToken by CLI.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: An error occurred reading Config file: {ex.Message}\nExpecting BearerToken by CLI.");
+            }
+            
+            // FIXME: need a more permenent solution
+            if(Config.TryGetValue("Antropic", out var value))
+            {
+                value.TryGetValue("BearerToken", out var bearerToken);
+                Environment.SetEnvironmentVariable("BearerToken", bearerToken);
+            }
+            
         }
     }
 }
