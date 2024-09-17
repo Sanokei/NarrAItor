@@ -57,15 +57,5 @@ namespace NarrAItor.Narrator
             Documentation = JsonConvert.SerializeObject(DocFiles);
             return Documentation;
         }
-
-        // Uses Documentation to get the "Abridged" version.
-        public string AbridgedDocumentation = "";
-        public string GetAbridgedDocumentation()
-        {
-            if(Documentation == null)
-                GetDocumentation();
-            
-            throw new NotImplementedException();
-        }
     }
 }
