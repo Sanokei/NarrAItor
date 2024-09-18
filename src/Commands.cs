@@ -1,4 +1,5 @@
 using NarrAItor.Utils.Datatypes;
+using NarrAItor.Configuration;
 
 namespace NarrAItor;
 
@@ -36,11 +37,12 @@ public static class Commands
 
     public static void BearerToken(string[] args)
     {
-        Environment.SetEnvironmentVariable("BearerToken", args[0]);
+        Environment.SetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY, args[0]);
     }
 
     public static void NarratorType(string[] args)
     {
-        Environment.SetEnvironmentVariable("NarratorType", args[0]);
+        // Use config instead.
+        // Environment.SetEnvironmentVariable("NarratorType", args[0]);
     }
 }

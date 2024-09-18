@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Collections;
 using NarrAItor.Narrator;
 using NarrAItor.Utils;
+using NarrAItor.Utils.Datatypes;
+using NarrAItor.Configuration;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
@@ -56,7 +58,8 @@ public class Program
     static void Main(string[] args)
     {
         // read from config file
-        SetEnviormentFromConfig();
+        SetEnviormentFromSecret();
+        SetEnviormentFromConfig("appsettings.json");
         // break the arg list into flags and parameters
         if(GetKeywordArguments(out Dictionary<string,List<string>> kwargs, args))
             foreach(var arg in kwargs)
@@ -65,65 +68,38 @@ public class Program
                     action?.Invoke([.. arg.Value]);
 
         // Create Lua bindings
-        SecretConfiguration();
+
         // Request the LLM Provider
-        string type = Environment.GetEnvironmentVariable("NarratorName") ?? "DefaultNarrator";
-    }
-    public class Section<TDerived> where TDerived : Section<TDerived>
-    {
-        public TDerived Parent { get; private set; }
-        public List<TDerived> Children { get; private set; }
-        public Section(TDerived parent)
-        {
-            this.Parent = parent;
-            this.Children = new List<TDerived>();
-            if(parent!=null) { parent.Children.Add((TDerived)this); }
-        }
-        public bool IsRoot { get { return Parent == null; } }
-        public bool hasChildren { get { return Children.Count!=0; } }
-    }
 
-    public class ConfigurationSections : Section<ConfigurationSections>
-    {
-        protected ConfigurationSections() : base(null) {}
-        protected ConfigurationSections(ConfigurationSections parent) : base(parent) {}
-        public string ConfigurationName {get;set;}
-        public string Configuration
-        {
-            get
-            {
-                return IsRoot ? ConfigurationName : Parent.Configuration == null ? ConfigurationName : $"{Parent.Configuration}__{ConfigurationName}";
-            }
-        }
-        public static ConfigurationSections Create()
-        {
-            return new ConfigurationSections{ };
-        }
-        public ConfigurationSections Create(string Config)
-        {
-            return new ConfigurationSections(this){ ConfigurationName = Config};
-        }
-    }
-
-    public static ConfigurationSections SecretConfiguration()
-    {
-        var SecretConfig = ConfigurationSections.Create();
-        var Anthropic = SecretConfig.Create("Anthropic");
-        // Leaf
-        var Secret_Key = Anthropic.Create("BearerToken");
-        
-        foreach(var c in SecretConfig.Children)
-            Console.WriteLine(c.Configuration);
-        Console.WriteLine(Secret_Key.Configuration);
-
-        return SecretConfig;
     }
     
-    private static void SetEnviormentFromConfig(string path = "appsettings.json")
+    
+    
+    private static void SetEnviormentFromConfig(string path)
     {
         IConfigurationBuilder builder = new ConfigurationBuilder().AddJsonFile(path, false, true);
         IConfigurationRoot root = builder.Build();
 
+    }
+
+    private static void SetEnviormentFromSecret()
+    {
+        List<string> SecretConfigNames = Config.SecretConfiguration();
+        IConfigurationRoot config = new ConfigurationBuilder()
+            .AddUserSecrets<Program>()
+            .Build();
+        
+        // It's so stupid, the standard should be __ for all platforms but because for the secrets file
+        // dotnet user-secrets <set, remove> flattens the json structure 
+        SecretConfigNames = SecretConfigNames.Select(x => x.Replace("__",":")).ToList();
+
+        foreach(var secret in SecretConfigNames)
+        {
+            if(string.IsNullOrEmpty(config[secret]))
+                Console.WriteLine($"Warning: No {secret} in secrets.json\nFalling back on CLI flag");
+            else
+                Environment.SetEnvironmentVariable(secret,config[secret]);
+        }
     }
 
 }

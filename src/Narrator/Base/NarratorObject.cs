@@ -6,7 +6,7 @@ namespace NarrAItor.Narrator;
 public abstract class NarratorObject : INarratable
 {
     // System Defaults
-    private const string DEFAULT_DOCUMENTATION_PATH = "./Narrator/ChripingNarrator/docs/";
+    private const string DEFAULT_DOCUMENTATION_PATH = "./Narrators/DefaultNarrator/docs/";
     private const string DEFAULT_DOCUMENTATION = "";
 
     private string _Name = "DefaultNarrator";
@@ -52,7 +52,7 @@ public abstract class NarratorObject : INarratable
             return DEFAULT_DOCUMENTATION;
         }    
 
-        if(Documentation != "" && useCachedDocumentation)
+        if(!string.IsNullOrEmpty(Documentation) && useCachedDocumentation)
             return Documentation;
 
         Dictionary<string, string[]> DocFiles = [];

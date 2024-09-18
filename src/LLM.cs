@@ -1,4 +1,5 @@
 using Anthropic;
+using NarrAItor.Configuration;
 
 namespace NarrAItor.LLM;
 
@@ -9,7 +10,7 @@ public static class LLM
         if (maxTokens < 250)
             Console.WriteLine("A higher token count is recomended.");
         // TODO: maybe use SecureString?
-        string apiKey = Environment.GetEnvironmentVariable("BearerToken") ?? throw new Exception($"BearerToken never passed.\nUsage: --BearerToken \"api-key\"\nor in the config file. \"BearerToken\":\"api-key\"");
+        string apiKey = Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY) ?? throw new Exception($"{Config.Names.Secrets.ANTHROPIC_API_KEY.Replace("__",":")} never passed.\nUsage: --BearerToken \"api-key\"\nor in the config file. \"BearerToken\":\"api-key\"");
         using var api = new AnthropicApi(apiKey);
 
         var response = await api.CreateMessageAsync
