@@ -27,6 +27,12 @@ namespace NarrAItor.Narrator
             get { return _Objective; }
             set { _Objective = value; }
         }
+        private string _Personality = "You act like the Narrator from every movie intro";
+        public string Personality
+        {
+            get { return _Personality; }
+            set { _Personality = value; }
+        }
         private string _DocumentationPath = DEFAULT_DOCUMENTATION_PATH;
         public string DocumentationPath
         {

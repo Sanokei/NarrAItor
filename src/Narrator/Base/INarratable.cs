@@ -9,6 +9,10 @@ namespace NarrAItor.Narrator
         /// </summary>
         public string Objective{get;set;}
         /// <summary>
+        /// Personality of the Narrator
+        /// </summary>
+        public string Personality{get;set;}
+        /// <summary>
         ///  The relative path of the narrator's documentation.
         /// </summary>
         public string DocumentationPath{get;set;}

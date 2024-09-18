@@ -9,4 +9,5 @@ artifacts/
 *.userprefs
 *DS_Store
 *.sln.ide
-appsettings.json
+appsettings.Development.json
+secrets.json

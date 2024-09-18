@@ -63,7 +63,7 @@ namespace NarrAItor
             // Create Lua bindings
 
             // Request the LLM Provider
-            string type = Environment.GetEnvironmentVariable("NarratorType") ?? "";
+            string type = Environment.GetEnvironmentVariable("NarratorName") ?? "DefaultNarrator";
         }
 
         private static void SetEnviormentFromConfig()
