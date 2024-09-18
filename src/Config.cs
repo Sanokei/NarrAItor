@@ -11,7 +11,7 @@ public static class Config
         }
     }
 
-    static List<string> GetLeafNodesAsStringConfiguration(ConfigurationSections sections) {return sections.GetLeafNodes().Select(x => x.Configuration).ToList();}
+    public static List<string> GetLeafNodesAsStringConfiguration(ConfigurationSections sections) {return sections.GetLeafNodes().Select(x => x.Configuration).ToList();}
     public static List<string> SecretConfiguration()
     {
         // Create root

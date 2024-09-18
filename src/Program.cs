@@ -7,6 +7,7 @@ using NarrAItor.Configuration;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
+using NarrAItor.Narrator.Modding;
 
 namespace NarrAItor;
 
@@ -59,27 +60,20 @@ public class Program
     {
         // read from config file
         SetEnviormentFromSecret();
-        SetEnviormentFromConfig("appsettings.json");
+        // SetEnviormentFromConfig("appsettings.json");
         // break the arg list into flags and parameters
         if(GetKeywordArguments(out Dictionary<string,List<string>> kwargs, args))
             foreach(var arg in kwargs)
                 if(Commands.CommandList.TryGetCommand(arg.Key, out var action))
                 // handle kwargs
                     action?.Invoke([.. arg.Value]);
-
-        // Create Lua bindings
-
-        // Request the LLM Provider
-
     }
-    
-    
     
     private static void SetEnviormentFromConfig(string path)
     {
         IConfigurationBuilder builder = new ConfigurationBuilder().AddJsonFile(path, false, true);
         IConfigurationRoot root = builder.Build();
-
+        throw new NotImplementedException();
     }
 
     private static void SetEnviormentFromSecret()
