@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using NarrAItor.Narrator.NarratorExceptions;
 
 namespace NarrAItor.Narrator;
-public abstract class NarratorObject : INarratable
+public class NarratorObject : INarratable
 {
     // System Defaults
     private const string DEFAULT_DOCUMENTATION_PATH = "./Narrators/DefaultNarrator/docs/";
