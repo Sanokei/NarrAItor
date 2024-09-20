@@ -9,6 +9,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using NarrAItor.Narrator.Modding;
 
+using Anthropic.SDK.Messaging;
+using Anthropic.SDK.Common;
+using Anthropic.SDK.Extensions;
+using Anthropic.SDK;
+using Anthropic.SDK.Constants;
+
 namespace NarrAItor;
 
 public class Program
@@ -56,36 +62,42 @@ public class Program
         }
         return kwargs.Count != 0;
     }
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
-        // read from config file
-        SetEnviormentFromSecret();
-        // SetEnviormentFromConfig("appsettings.json");
-        // break the arg list into flags and parameters
-        if(GetKeywordArguments(out Dictionary<string,List<string>> kwargs, args))
-            foreach(var arg in kwargs)
-                if(Commands.CommandList.TryGetCommand(arg.Key, out var action))
-                // handle kwargs
-                    action?.Invoke([.. arg.Value]);
+        SetEnvironmentFromSecret();
+
+        if (GetKeywordArguments(out Dictionary<string, List<string>> kwargs, args))
+        {
+            foreach (var arg in kwargs)
+            {
+                if (Commands.CommandList.TryGetCommand(arg.Key, out var action))
+                {
+                    if (action is CommandMap.AsyncCommandAction asyncAction)
+                    {
+                        await asyncAction(arg.Value.ToArray());
+                    }
+                    else if (action is Action<string[]> syncAction)
+                    {
+                        syncAction(arg.Value.ToArray());
+                    }
+                }
+            }
+        }
     }
     
-    private static void SetEnviormentFromConfig(string path)
+    private static void SetEnvironmentFromConfig(string path)
     {
         IConfigurationBuilder builder = new ConfigurationBuilder().AddJsonFile(path, false, true);
         IConfigurationRoot root = builder.Build();
         throw new NotImplementedException();
     }
 
-    private static void SetEnviormentFromSecret()
+    private static void SetEnvironmentFromSecret()
     {
         List<string> SecretConfigNames = Config.SecretConfiguration();
         IConfigurationRoot config = new ConfigurationBuilder()
             .AddUserSecrets<Program>()
             .Build();
-        
-        // It's so stupid, the standard should be __ for all platforms but because for the secrets file
-        // dotnet user-secrets <set, remove> flattens the json structure 
-        SecretConfigNames = SecretConfigNames.Select(x => x.Replace("__",":")).ToList();
 
         foreach(var secret in SecretConfigNames)
         {

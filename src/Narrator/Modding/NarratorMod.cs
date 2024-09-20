@@ -1,9 +1,12 @@
 using System;
 using System.Threading;
 
+using Anthropic.SDK;
+using Anthropic.SDK.Messaging;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.CoreLib.IO;
 using MoonSharp.Interpreter.Loaders;
+using MoonSharp.Interpreter.Interop;
 
 using NarrAItor.Narrator;
 
@@ -22,11 +25,35 @@ class NarratorMod
         this.PathToMod = Path.Join(Directory.GetCurrentDirectory(), RelativePath);
     }
 
-    public void Initialize()
+    public Script Initialize()
     {
-        UserData.RegisterAssembly();
+        UserData.RegisterType<NarratorApi>();
+        
+        // FIXME: set path.
+        // ((ScriptLoaderBase)script.Options.ScriptLoader).ModulePaths = ScriptLoaderBase.UnpackStringPaths(System.IO.Path.Combine("/modules/","?") + ".lua");
+        
+        script.Options.DebugPrint = (x) => {Console.WriteLine(x);};
+        ((ScriptLoaderBase)script.Options.ScriptLoader).IgnoreLuaPathGlobal = true;
+        
+        Script.GlobalOptions.CustomConverters.SetClrToScriptCustomConversion<TaskDescriptor>((script, task) =>
+        {
+            // Important !!!
+            return DynValue.NewYieldReq(new[]
+            {
+                DynValue.FromObject(script, new AnonWrapper<TaskDescriptor>(task))
+            });
+        });
         // Because you only can set one narrator and not mulitple this is going to just be a global
-        script.Globals["narrator"] = new NarratorApi(new NarratorObject());
+        script.Globals["narrator"] = new NarratorApi(this, new NarratorObject());
+        script.Globals["AsAssistantMessage"] = (Func<string, DynValue>)(content =>
+        {
+            var table = new Table(script);
+            table["role"] = "assistant";
+            table["content"] = content;
+            return DynValue.NewTable(table);
+        });
+
+        return script;
     }
 
     void Update(object state)
@@ -37,40 +64,59 @@ class NarratorMod
         }
     }
     public ScriptFunctionDelegate onAwake, onStart, onUpdate;
-    
     public Script script = new();
 
-    public void Run()
+    public async Task Run()
     {
         // UserData.RegisterAssembly();
-
-        
-        script.Options.DebugPrint = (x) => {Console.WriteLine(x);};
-        ((ScriptLoaderBase)script.Options.ScriptLoader).IgnoreLuaPathGlobal = true;
-        // FIXME: set path.
-        // ((ScriptLoaderBase)script.Options.ScriptLoader).ModulePaths = ScriptLoaderBase.UnpackStringPaths(System.IO.Path.Combine("/modules/","?") + ".lua");
-        
-        
-        DynValue fn = script.DoString(LuaFileData);
-
         onAwake = script.Globals.Get("Awake") != DynValue.Nil ? script.Globals.Get("Awake").Function.GetDelegate() : null;
         onStart = script.Globals.Get("Start") != DynValue.Nil ? script.Globals.Get("Start").Function.GetDelegate() : null;
-
-        onAwake?.Invoke();
-        onStart?.Invoke();   
         
         _UpdateTimer = new Timer(Update, null, 0, 16);
-        onUpdate = script.Globals.Get("Update") != DynValue.Nil ? script.Globals.Get("Update").Function.GetDelegate() : null;
+        try
+        {
+            DynValue fn = await script.DoStringAsync(LuaFileData);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("The lua script abort with exception. \n{0}", e);
+        } 
+        onAwake?.Invoke();
+        onStart?.Invoke();  
+        onUpdate = script.Globals.Get("Update") != DynValue.Nil ? script.Globals.Get("Update").Function.GetDelegate() : null; 
+    }
+    public static List<Message> BuildMessagesListFromTable(DynValue MessagesTable)
+    {
+        var messages = new List<Message>();
+
+        foreach (TablePair pair in MessagesTable.Table.Pairs)
+        {
+            if (pair.Value.Type == DataType.String)
+            {
+                messages.Add(new Message (RoleType.User, pair.Value.String ));
+            }
+            else if (pair.Value.Type == DataType.Table)
+            {
+                var table = pair.Value.Table;
+                if (table.Get("role").String == "assistant")
+                {
+                    messages.Add(new Message (RoleType.Assistant, table.Get("content").String ));
+                }
+            }
+        }
+        return messages;
     }
 }
 
-[MoonSharpUserData]
-class NarratorApi
+// [MoonSharpUserData]
+public class NarratorApi
 {
+    NarratorMod _ParentMod;
     public NarratorObject Narrator;
-    internal NarratorApi(NarratorObject Narrator)
+    internal NarratorApi(NarratorMod parent, NarratorObject Narrator)
     {
         this.Narrator = Narrator;
+        this._ParentMod = parent;
     }
     /// <summary>
     /// Use <> text to speech to speak the phrase given.
@@ -87,5 +133,29 @@ class NarratorApi
     public void print(string Phrase)
     {
         Console.WriteLine(Phrase);
+    }
+
+    // public async Task<DynValue> think(DynValue MessagesTable)
+    // {
+    //     var messages = NarratorMod.BuildMessagesListFromTable(MessagesTable);
+    //     var response = await LLM.Anthropic.Ask(messages);
+    //     return DynValue.NewString(response);
+    // }
+
+    public static TaskDescriptor think(DynValue MessagesTable)
+    {
+        var messages = NarratorMod.BuildMessagesListFromTable(MessagesTable);
+        return TaskDescriptor.Build(async () =>
+        {
+            try
+            {
+                return await LLM.Anthropic.Ask(messages);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Anthropic API call: {ex.Message}");
+                throw;
+            }
+        });
     }
 }

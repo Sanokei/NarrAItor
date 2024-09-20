@@ -2,28 +2,35 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NarrAItor.Utils.Datatypes;
+
 public class CommandMap : IEnumerable
 {
-    public delegate void CommandAction(string[] args);
+    public delegate Task AsyncCommandAction(string[] args);
 
-    private Dictionary<string, CommandAction> _Commands = [];
+    private Dictionary<string, Delegate> _Commands = new();
 
-    public void AddCommand(CommandAction action, params string[] aliases)
+    public void AddCommand(Delegate action, params string[] aliases)
     {
+        if (action is not Action<string[]> && action is not AsyncCommandAction)
+        {
+            throw new ArgumentException("Action must be either Action<string[]> or Func<string[], Task>", nameof(action));
+        }
+
         foreach (var alias in aliases)
         {
             _Commands[alias] = action;
         }
     }
 
-    public bool TryGetCommand(string input, out CommandAction? action)
+    public bool TryGetCommand(string input, out Delegate? action)
     {
         return _Commands.TryGetValue(input, out action);
     }
 
-    public IEnumerable<string> GetAliases(CommandAction action)
+    public IEnumerable<string> GetAliases(Delegate action)
     {
         return _Commands.Where(kvp => kvp.Value == action).Select(kvp => kvp.Key);
     }
@@ -32,27 +39,24 @@ public class CommandMap : IEnumerable
     {
         return _Commands.Remove(alias);
     }
-    /// <summary>
-    /// Allows the deletion of commands through outside sources.
-    /// </summary>
-    /// <param name="action"></param>
-    public void RemoveCommand(CommandAction action)
+
+    public void RemoveCommand(Delegate action)
     {
-        _Commands.Where(kvp => kvp.Value == action).Select(kvp => _Commands.Remove(kvp.Key));
+        var aliasesToRemove = _Commands.Where(kvp => kvp.Value == action).Select(kvp => kvp.Key).ToList();
+        foreach (var alias in aliasesToRemove)
+        {
+            _Commands.Remove(alias);
+        }
     }
 
-
-    // public void Clear()
-    // {
-    //     _Commands.Clear();
-    // }
-    
     public int Count => _Commands.Count;
+
     [Obsolete("This returns every alias individually. Meant for internal use only.")]
-    public IEnumerator<KeyValuePair<string, CommandAction>> GetEnumerator()
+    public IEnumerator<KeyValuePair<string, Delegate>> GetEnumerator()
     {
         return _Commands.GetEnumerator();
     }
+
     [Obsolete("This returns every alias individually. Meant for internal use only.")]
     IEnumerator IEnumerable.GetEnumerator()
     {

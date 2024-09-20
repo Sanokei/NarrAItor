@@ -55,9 +55,9 @@ public class NarratorObject : INarratable
         if(!string.IsNullOrEmpty(Documentation) && useCachedDocumentation)
             return Documentation;
 
-        Dictionary<string, string[]> DocFiles = [];
+        Dictionary<string, string> DocFiles = [];
         foreach (string fileName in Directory.GetFiles(DirPath, "*.md"))
-            DocFiles.Add(fileName,File.ReadAllLines(fileName));
+            DocFiles.Add(fileName,File.ReadAllText(fileName));
         Documentation = JsonConvert.SerializeObject(DocFiles);
         return Documentation;
     }

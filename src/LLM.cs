@@ -1,24 +1,37 @@
-using Anthropic;
+using Anthropic.SDK.Messaging;
+using Anthropic.SDK.Common;
+using Anthropic.SDK.Extensions;
+using Anthropic.SDK;
+using Anthropic.SDK.Constants;
+
+using MoonSharp.Interpreter;
+
 using NarrAItor.Configuration;
+
 
 namespace NarrAItor.LLM;
 
-public static class LLM
+public static class Anthropic
 {
-    internal static async Task SendRequest(IList<Message> messages, int maxTokens = 250)
+    public static async Task<MessageResponse> Ask(List<Message> messages, int MaxTokens = 250)
     {
-        if (maxTokens < 250)
+        if (MaxTokens < 250)
             Console.WriteLine("A higher token count is recomended.");
         // TODO: maybe use SecureString?
-        string apiKey = Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY) ?? throw new Exception($"{Config.Names.Secrets.ANTHROPIC_API_KEY.Replace("__",":")} never passed.\nUsage: --BearerToken \"api-key\"\nor in the config file. \"BearerToken\":\"api-key\"");
-        using var api = new AnthropicApi(apiKey);
+        string apiKey = Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY) ?? throw new Exception($"{Config.Names.Secrets.ANTHROPIC_API_KEY} never passed.\nUsage: --BearerToken \"api-key\"");
+        using var api = new AnthropicClient(apiKey);
 
-        var response = await api.CreateMessageAsync
+        MessageResponse response = await api.Messages.GetClaudeMessageAsync
         (
-            model: CreateMessageRequestModel.Claude35Sonnet20240620,
-            messages: messages,
-            maxTokens: maxTokens
+            new MessageParameters()
+            {
+                Model = AnthropicModels.Claude35Sonnet,
+                Messages = messages,
+                MaxTokens = MaxTokens,
+                Stream = false,
+                Temperature = 1.0m,
+            }
         );
-        
+        return response;
     }
 }

@@ -5,6 +5,6 @@
 ### Create secret
 `dotnet user-secrets init`
 ### Set Anthropic API key
-`dotnet user-secrets set "Anthropic:BearerToken" "x-api-key"`
+`dotnet user-secrets set "Anthropic__BearerToken" "x-api-key"`
 ### Run
 `dotnet run`
