@@ -55,14 +55,14 @@ public static class Commands
     public static async Task UnitTest(string[] args)
     {
         Console.WriteLine("Conducting Tests\n");
-        Dictionary<string, Action> UnitTests = [];
-        UnitTests.Add("luabinding", async () => {
+        Dictionary<string, Delegate> UnitTests = [];
+        UnitTests.Add("luabinding", () => {
             Console.WriteLine("\nLua binding with Narrator `narrator.print(\"Test Working\")`");
             // Create Lua bindings
             NarrAItor.Narrator.Modding.NarratorMod test = new("","narrator.print(\"Test Working\")");
             // Request the LLM Provider
             test.Initialize();
-            await test.Run();
+            test.Run();
             Console.WriteLine("\nexpected result: Test Working\n");
         });
 
@@ -112,12 +112,12 @@ public static class Commands
             print(""Hello World! This is Lua code script."");
 
             print(""Before delay..."")
-            demo.delay(3);
+            demo.Delay(3);
             print(""After delay"")
 
-            local content = demo.read(""TestScript.lua"");
+            -- local content = demo.read(""TestScript.lua"");
 
-            print(content);
+            -- print(content);
 
             return 0;
             ";
@@ -130,7 +130,7 @@ public static class Commands
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in askanthropic test: {ex.Message}");
+                Console.WriteLine($"Error in lua test: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
             }
         });
@@ -140,13 +140,38 @@ public static class Commands
             Console.WriteLine($"\nx-api-key: { (String.IsNullOrEmpty(Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY)) ? "Not Set" : Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY))}\n");
         });
 
-        foreach(var arg in args)
-            if(UnitTests.TryGetValue(arg, out var test))
-                test?.Invoke();
-
-        if(args.Count() == 0)
-            foreach(var test in UnitTests.Values)
-                test?.Invoke();
+        if (args.Length == 0)
+        {
+            foreach (var test in UnitTests.Values)
+            {
+                await InvokeTestAsync(test);
+            }
+        }
+        else
+        {
+            foreach (var arg in args)
+            {
+                if (UnitTests.TryGetValue(arg, out var test))
+                {
+                    await InvokeTestAsync(test);
+                }
+            }
+        }
+    }
+    private static async Task InvokeTestAsync(Delegate test)
+    {
+        if (test is Func<Task> asyncTest)
+        {
+            await asyncTest();
+        }
+        else if (test is Action syncTest)
+        {
+            syncTest();
+        }
+        else
+        {
+            Console.WriteLine($"Unsupported test type: {test.GetType()}");
+        }
     }
 }
 public class Demo

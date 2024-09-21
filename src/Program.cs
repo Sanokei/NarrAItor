@@ -74,17 +74,17 @@ public class Program
                 {
                     if (action is CommandMap.AsyncCommandAction asyncAction)
                     {
-                        await asyncAction(arg.Value.ToArray());
+                        await asyncAction?.Invoke(arg.Value.ToArray());
                     }
                     else if (action is Action<string[]> syncAction)
                     {
-                        syncAction(arg.Value.ToArray());
+                        syncAction?.Invoke(arg.Value.ToArray());
                     }
                 }
             }
         }
     }
-    
+
     private static void SetEnvironmentFromConfig(string path)
     {
         IConfigurationBuilder builder = new ConfigurationBuilder().AddJsonFile(path, false, true);
