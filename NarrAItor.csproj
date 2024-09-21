@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Anthropic.SDK" Version="4.1.1" />
+    <PackageReference Include="AvalonLua.MoonSharp" Version="2023.11.15.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0-rc.1.24431.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0-rc.1.24431.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
