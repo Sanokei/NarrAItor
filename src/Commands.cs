@@ -90,7 +90,7 @@ public static class Commands
                 AsAssistantMessage(""Sure! Could you please provide me with your location?""),
                 ""Dubai, UAE""
             })
-            print(""Response from Anthropic: "" .. response.Message)
+            print(""Response from Anthropic: "" .. response.message)
             ";
             try
             {

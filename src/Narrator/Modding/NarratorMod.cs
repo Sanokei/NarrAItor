@@ -45,6 +45,7 @@ class NarratorMod
         });
         // Because you only can set one narrator and not mulitple this is going to just be a global
         script.Globals["narrator"] = new NarratorApi(this, new NarratorObject());
+        
         script.Globals["AsAssistantMessage"] = (Func<string, DynValue>)(content =>
         {
             var table = new Table(script);
@@ -107,9 +108,9 @@ class NarratorMod
         return messages;
     }
 
-    public static DynValue BuildDynValueFromMessagesAndResponse(List<Message> messages, MessageResponse response)
+    public DynValue BuildDynValueFromMessagesAndResponse(List<Message> messages, MessageResponse response)
     {
-        var script = new Script(); // FIXME
+        // var script = new Script(); // FIXME
         var table = new Table(script);
 
         // Add original messages to the table
@@ -117,18 +118,18 @@ class NarratorMod
         {
             var messageTable = new Table(script);
             messageTable["role"] = messages[i].Role == RoleType.User ? "user" : "assistant";
-            messageTable["content"] = messages[i].Content;
+            messageTable["content"] = messages[i].ToString();
             table[i + 1] = DynValue.NewTable(messageTable);
         }
 
         // Add the new response message to the table
         var responseTable = new Table(script);
         responseTable["role"] = "assistant";
-        responseTable["content"] = response.Content;
+        responseTable["content"] = response.Message.ToString();
         table[messages.Count + 1] = DynValue.NewTable(responseTable);
 
         // Add the raw response content as a separate field
-        table["response"] = response.Content;
+        table["message"] = response.Message.ToString();
 
         return DynValue.NewTable(table);
     }
@@ -168,8 +169,9 @@ public class NarratorApi
     //     return DynValue.NewString(response);
     // }
 
-    public static TaskDescriptor think(DynValue MessagesTable)
+    public TaskDescriptor think(DynValue MessagesTable)
     {
+        
         var messages = NarratorMod.BuildMessagesListFromTable(MessagesTable);
         return TaskDescriptor.Build(async () =>
         {
@@ -177,7 +179,7 @@ public class NarratorApi
             {
                 await LLM.Anthropic.Ask(messages);
                 var response = await LLM.Anthropic.Ask(messages);
-                return NarratorMod.BuildDynValueFromMessagesAndResponse(messages, response);
+                return _ParentMod.BuildDynValueFromMessagesAndResponse(messages, response);
             }
             catch (Exception ex)
             {
