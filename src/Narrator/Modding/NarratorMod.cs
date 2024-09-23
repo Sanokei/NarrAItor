@@ -9,6 +9,7 @@ using MoonSharp.Interpreter.Loaders;
 using MoonSharp.Interpreter.Interop;
 
 using NarrAItor.Narrator;
+using System.Reflection.Metadata;
 
 namespace NarrAItor.Narrator.Modding;
 
@@ -135,7 +136,14 @@ class NarratorMod
         return DynValue.NewTable(table);
     }
 }
-
+public class NarratorPrompts
+{
+    public const string PROMPT = "create a lua program using the following API to create ";
+    public string prompt(params string[] args)
+    {
+        return $"using {args.Select(p=>p.ToString())}, {PROMPT}";
+    }
+}
 // [MoonSharpUserData]
 public class NarratorApi
 {
@@ -217,7 +225,6 @@ public class NarratorApi
 
         return DynValue.NewString("");
     }
-    // FIXME: I honestly hate this but its how its going to have to be
     public DynValue prompt()
     {
         return prompt(new DynValue[0]);
