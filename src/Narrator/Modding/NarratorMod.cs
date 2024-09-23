@@ -106,6 +106,32 @@ class NarratorMod
         }
         return messages;
     }
+
+    public static DynValue BuildDynValueFromMessagesAndResponse(List<Message> messages, MessageResponse response)
+    {
+        var script = new Script(); // FIXME
+        var table = new Table(script);
+
+        // Add original messages to the table
+        for (int i = 0; i < messages.Count; i++)
+        {
+            var messageTable = new Table(script);
+            messageTable["role"] = messages[i].Role == RoleType.User ? "user" : "assistant";
+            messageTable["content"] = messages[i].Content;
+            table[i + 1] = DynValue.NewTable(messageTable);
+        }
+
+        // Add the new response message to the table
+        var responseTable = new Table(script);
+        responseTable["role"] = "assistant";
+        responseTable["content"] = response.Content;
+        table[messages.Count + 1] = DynValue.NewTable(responseTable);
+
+        // Add the raw response content as a separate field
+        table["response"] = response.Content;
+
+        return DynValue.NewTable(table);
+    }
 }
 
 // [MoonSharpUserData]
@@ -149,7 +175,9 @@ public class NarratorApi
         {
             try
             {
-                return await LLM.Anthropic.Ask(messages);
+                await LLM.Anthropic.Ask(messages);
+                var response = await LLM.Anthropic.Ask(messages);
+                return NarratorMod.BuildDynValueFromMessagesAndResponse(messages, response);
             }
             catch (Exception ex)
             {
