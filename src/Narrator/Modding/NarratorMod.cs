@@ -86,11 +86,11 @@ class NarratorMod
         onStart?.Invoke();  
         onUpdate = script.Globals.Get("Update") != DynValue.Nil ? script.Globals.Get("Update").Function.GetDelegate() : null; 
     }
-    public static List<Message> BuildMessagesListFromTable(DynValue MessagesTable)
+    public static List<Message> BuildMessagesListFromTable(Table MessagesTable)
     {
         var messages = new List<Message>();
 
-        foreach (TablePair pair in MessagesTable.Table.Pairs)
+        foreach (TablePair pair in MessagesTable.Pairs)
         {
             if (pair.Value.Type == DataType.String)
             {
@@ -110,26 +110,27 @@ class NarratorMod
 
     public DynValue BuildDynValueFromMessagesAndResponse(List<Message> messages, MessageResponse response)
     {
-        // var script = new Script(); // FIXME
         var table = new Table(script);
-
+        var messagesTable = new Table(script);
         // Add original messages to the table
         for (int i = 0; i < messages.Count; i++)
         {
-            var messageTable = new Table(script);
-            messageTable["role"] = messages[i].Role == RoleType.User ? "user" : "assistant";
-            messageTable["content"] = messages[i].ToString();
-            table[i + 1] = DynValue.NewTable(messageTable);
+            var msgTable = new Table(script);
+            msgTable["role"] = messages[i].Role == RoleType.User ? "user" : "assistant";
+            msgTable["content"] = messages[i].ToString();
+            messagesTable[i + 1] = DynValue.NewTable(msgTable);
         }
-
+        
         // Add the new response message to the table
         var responseTable = new Table(script);
         responseTable["role"] = "assistant";
         responseTable["content"] = response.Message.ToString();
-        table[messages.Count + 1] = DynValue.NewTable(responseTable);
+        messagesTable[messages.Count + 1] = DynValue.NewTable(responseTable);
+        
+        table["messages"] = DynValue.NewTable(messagesTable);
 
         // Add the raw response content as a separate field
-        table["message"] = response.Message.ToString();
+        table["content"] = response.Message.ToString();
 
         return DynValue.NewTable(table);
     }
@@ -146,14 +147,6 @@ public class NarratorApi
         this._ParentMod = parent;
     }
     /// <summary>
-    /// Use <> text to speech to speak the phrase given.
-    /// </summary>
-    /// <param name="Phrase">The phrase to be spoken</param>
-    public void say(string Phrase)
-    {
-        throw new NotImplementedException();
-    }
-    /// <summary>
     /// Prints Phrase to Console
     /// </summary>
     /// <param name="Phrase">The phrase to be printed to the console</param>
@@ -162,14 +155,44 @@ public class NarratorApi
         Console.WriteLine(Phrase);
     }
 
+    /// <summary>
+    /// Use <> text to speech to speak the phrase given.
+    /// </summary>
+    /// <param name="Phrase">The phrase to be spoken</param>
+    public void say(string Voice, string Phrase)
+    {
+        throw new NotImplementedException();
+    }
+
     // public async Task<DynValue> think(DynValue MessagesTable)
     // {
     //     var messages = NarratorMod.BuildMessagesListFromTable(MessagesTable);
     //     var response = await LLM.Anthropic.Ask(messages);
     //     return DynValue.NewString(response);
     // }
+    public TaskDescriptor think(DynValue Message)
+    {
+        switch (Message.Type)
+        {
+            case DataType.String:
+                return think(Message.String);
+            case DataType.Table:
+                return think(Message.Table);
+            default:
+                throw new ArgumentException($"Unsupported input type for think: {Message.Type}");
+        }
+    }
+    public TaskDescriptor think(string Message)
+    {
+        var table = new Table(_ParentMod.script);
+        var messageTable = new Table(_ParentMod.script);
+        messageTable["role"] = DynValue.NewString("user");
+        messageTable["content"] = DynValue.NewString(Message);
+        table[1] = DynValue.NewTable(messageTable);
 
-    public TaskDescriptor think(DynValue MessagesTable)
+        return think(DynValue.NewTable(table));
+    }
+    public TaskDescriptor think(Table MessagesTable)
     {
         
         var messages = NarratorMod.BuildMessagesListFromTable(MessagesTable);
@@ -187,5 +210,40 @@ public class NarratorApi
                 throw;
             }
         });
+    }
+
+    internal DynValue prompt(params DynValue[] args)
+    {
+
+        return DynValue.NewString("");
+    }
+    // FIXME: I honestly hate this but its how its going to have to be
+    public DynValue prompt()
+    {
+        return prompt(new DynValue[0]);
+    }
+    public DynValue prompt(DynValue arg1)
+    {
+        return prompt(new DynValue[1]{arg1});
+    }
+    public DynValue prompt(DynValue arg1, DynValue arg2)
+    {
+        return prompt(new DynValue[2]{arg1,arg2});
+    }
+    public DynValue prompt(DynValue arg1, DynValue arg2, DynValue arg3)
+    {
+        return prompt(new DynValue[3]{arg1,arg2,arg3});
+    }
+    public DynValue prompt(DynValue arg1, DynValue arg2, DynValue arg3, DynValue arg4)
+    {
+        return prompt(new DynValue[4]{arg1,arg2,arg3,arg4});
+    }
+    public DynValue prompt(DynValue arg1, DynValue arg2, DynValue arg3, DynValue arg4, DynValue arg5)
+    {
+        return prompt(new DynValue[5]{arg1,arg2,arg3,arg4,arg5});
+    }
+    public DynValue prompt(DynValue arg1, DynValue arg2, DynValue arg3, DynValue arg4, DynValue arg5, DynValue arg6)
+    {
+        return prompt(new DynValue[6]{arg1,arg2,arg3,arg4,arg5,arg6});
     }
 }
