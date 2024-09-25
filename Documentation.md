@@ -22,9 +22,6 @@ Standardized prompt to be able to get back responses that fit the API schema.
 ##### params string[] args
 0 to 5 string arguments that will be added to the prompt.
 
-### string __prompt_stringonly__
-Standaridized prompt that makes Anthropic only send back the desired DynValue string response without any fluff. 
-
 ### void __print(string Phrase)__
 A debug function that prints a string to the console. Same function as `print("")`.
 #### parameters

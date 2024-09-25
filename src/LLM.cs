@@ -13,7 +13,7 @@ namespace NarrAItor.LLM;
 
 public static class Anthropic
 {
-    public static async Task<MessageResponse> Ask(List<Message> messages, int MaxTokens = 250)
+    public static async Task<MessageResponse> Ask(List<Message> messages, int MaxTokens)
     {
         if (MaxTokens < 250)
             Console.WriteLine("A higher token count is recomended.");

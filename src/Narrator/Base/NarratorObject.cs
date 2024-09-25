@@ -1,6 +1,7 @@
 using System.IO;
 using Newtonsoft.Json;
 using NarrAItor.Narrator.NarratorExceptions;
+using NarrAItor.Narrator.Modding;
 
 namespace NarrAItor.Narrator;
 public class NarratorObject : INarratable

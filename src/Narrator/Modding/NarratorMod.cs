@@ -17,6 +17,7 @@ class NarratorMod
 {
     static Timer _UpdateTimer;
     static readonly object _LockObject = new object();
+    public int MaxTokens = 250;
     public string LuaFileData = "";
     // Asssume the path and NarratorName are different.
     public string PathToMod = "";
@@ -136,12 +137,40 @@ class NarratorMod
         return DynValue.NewTable(table);
     }
 }
-public class NarratorPrompts
+public static class NarratorPrompts
 {
-    public const string PROMPT = "create a lua program using the following API to create ";
-    public string prompt(params string[] args)
+    public static string GET_API_DOCUMENTATION => File.ReadAllText(Path.Join(Directory.GetCurrentDirectory(),"Documentation.md")).ToString();
+    public static string EXAMPLES = @"
+        ### basic example
+    ``` lua
+    -- Sure, here is an default narration.
+    narrator:play_music(narrator:music_search(""adventurous"")[1].title)
+    narrator:say(""Morrow_Wind_Character"",""And as the adverntuer woke up from his mighty nap he thought about the day before him."")
+    ```
+    With more personal information from the user (e.g access to scheduling software) the narration can become more nuanced and complex.
+
+    ### using personal info example
+    ``` lua
+    -- Sure, here is a narration using the google calender information provided.
+    narrator:play_music(narrator:music_search(""adventurous"")[1].title)
+    -- as an example let's say we already have output cal_response.
+    local cal_response = ""And as the adverntuer woke up awaiting the meeting with fellow dwarves at sundown of 7, they venture forth to the work day ahead of them starting at 9:30 in thy morning.""
+    narrator:say(""Morrow_Wind_Character"",cal_response)
+    ```
+
+    Another trick up the LLM's metaphorical sleeves is the ability to pass off work to be able to use tools at its disposal.
+    ``` lua
+    -- Sure, here is a complex narration with tool use.
+    local cal_response = narrator:get_info(""calander__google"")
+    local response = narrator:think(narrator:prompt(cal_response, ""Adventurous Persona""))
+    narrator:say(response.content)
+    ```
+    ";
+    public static string PROMPT = $"Create a lua program to create a narration in the style specified. That uses the voice specified. Only return the lua code. Do not use ``` to make it a code block. As if you returned anything else, it will break.";
+    public static string prompt(string[] args, int MaxTokens)
     {
-        return $"using {args.Select(p=>p.ToString())}, {PROMPT}";
+        if(args.Count() == 0) return $"{PROMPT}";
+        return $"Using the following data: {String.Join(",",args.Select(p=>p.ToString()))},\n{PROMPT}\nThe response must be within {MaxTokens.ToString()} number of Tokens.\nDo NOT make up API endpoints. Only use the avaiable API below\n{GET_API_DOCUMENTATION}";
     }
 }
 // [MoonSharpUserData]
@@ -190,17 +219,14 @@ public class NarratorApi
                 throw new ArgumentException($"Unsupported input type for think: {Message.Type}");
         }
     }
-    public TaskDescriptor think(string Message)
+    internal TaskDescriptor think(string Message)
     {
         var table = new Table(_ParentMod.script);
-        var messageTable = new Table(_ParentMod.script);
-        messageTable["role"] = DynValue.NewString("user");
-        messageTable["content"] = DynValue.NewString(Message);
-        table[1] = DynValue.NewTable(messageTable);
+        table[1] = DynValue.NewString(Message);
 
         return think(DynValue.NewTable(table));
     }
-    public TaskDescriptor think(Table MessagesTable)
+    internal TaskDescriptor think(Table MessagesTable)
     {
         
         var messages = NarratorMod.BuildMessagesListFromTable(MessagesTable);
@@ -208,8 +234,7 @@ public class NarratorApi
         {
             try
             {
-                await LLM.Anthropic.Ask(messages);
-                var response = await LLM.Anthropic.Ask(messages);
+                var response = await LLM.Anthropic.Ask(messages, _ParentMod.MaxTokens);
                 return _ParentMod.BuildDynValueFromMessagesAndResponse(messages, response);
             }
             catch (Exception ex)
@@ -222,8 +247,7 @@ public class NarratorApi
 
     internal DynValue prompt(params DynValue[] args)
     {
-
-        return DynValue.NewString("");
+        return DynValue.NewString(NarratorPrompts.prompt(args.Select(p=>p.ToString()).ToArray(), _ParentMod.MaxTokens));
     }
     public DynValue prompt()
     {

@@ -135,6 +135,25 @@ public static class Commands
             }
         });
 
+        UnitTests.Add("promptanthropic", async () =>
+        {
+            string testing = @"
+            local response = narrator:think(narrator:prompt(""in the stlye of the skylord of the sea, drawf of stone."",""voice like Gordon from HL1""))
+            print(""Response from Anthropic: "" .. response.content)
+            ";
+            try
+            {
+                NarrAItor.Narrator.Modding.NarratorMod test = new("", testing);
+                test.Initialize();
+                await test.Run();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in askanthropic test: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+            }
+        });
+
         UnitTests.Add("secret", () => {
             Console.WriteLine("\nEnviormental Variable Secret. `Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY);`");
             Console.WriteLine($"\nx-api-key: { (String.IsNullOrEmpty(Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY)) ? "Not Set" : Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY))}\n");

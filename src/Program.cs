@@ -82,6 +82,9 @@ public class Program
                     }
                 }
             }
+
+            // Check mods folder for installed mods
+            
         }
     }
 
