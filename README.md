@@ -26,7 +26,7 @@ Another trick up the LLM's metaphorical sleeves is the ability to pass off work 
 ``` lua
 -- Sure, here is a complex narration with tool use.
 local cal_response = narrator:get_info("calander__google")
-local response = narrator:think(narrator:prompt(cal_response, "Adventurous Persona"))
+local response = narrator:think(narrator:prompt({cal_response, {"NarratorPersonality","Adventurous Persona"}}))
 narrator:say(response.content)
 ```
 

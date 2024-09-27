@@ -14,13 +14,20 @@ The narrator is the main component that can be used to call differing functions.
 
 ## Narrator Methods
 The methods to interact with the NarratorAPI
-### string __prompt(params string[] args)__
+### string __prompt(Table kwargs)__
 Standardized prompt to be able to get back responses that fit the API schema.
 > [!NOTE]
-> Because params isn't an option in lua, it is abstracted with range of [0,5] arguments.
+> The kwargs will be embedded into the global of the script, as variables to use under `uservars`
 #### parameters
-##### params string[] args
-0 to 5 string arguments that will be added to the prompt.
+##### Table kwargs
+kwargs should be formatted to give every arg a keyword.
+#### usage
+```lua
+narrator:prompt({
+    {"username","William"},
+    {"voice","adventurous"}
+}) 
+```
 
 ### void __print(string Phrase)__
 A debug function that prints a string to the console. Same function as `print("")`.

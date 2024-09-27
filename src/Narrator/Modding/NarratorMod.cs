@@ -26,6 +26,13 @@ class NarratorMod
         this.LuaFileData = LuaFileData;
         this.PathToMod = Path.Join(Directory.GetCurrentDirectory(), RelativePath);
     }
+    private void InitializeUserVarsTable()
+    {
+        if (script.Globals.Get("uservars").Type == DataType.Nil)
+        {
+            script.Globals["uservars"] = new Table(script);
+        }
+    }
 
     public Script Initialize()
     {
@@ -55,6 +62,8 @@ class NarratorMod
             table["content"] = content;
             return DynValue.NewTable(table);
         });
+
+        InitializeUserVarsTable();
 
         return script;
     }
@@ -167,10 +176,9 @@ public static class NarratorPrompts
     ```
     ";
     public static string PROMPT = $"Create a lua program to create a narration in the style specified. That uses the voice specified. Only return the lua code. Do not use ``` to make it a code block. As if you returned anything else, it will break.";
-    public static string prompt(string[] args, int MaxTokens)
+    public static string prompt(Dictionary<string,string> args, int MaxTokens) 
     {
-        if(args.Count() == 0) return $"{PROMPT}";
-        return $"Using the following data: {String.Join(",",args.Select(p=>p.ToString()))},\n{PROMPT}\nThe response must be within {MaxTokens.ToString()} number of Tokens.\nDo NOT make up API endpoints. Only use the avaiable API below\n{GET_API_DOCUMENTATION}";
+        return $"Using the following variables within uservars: {String.Join(",",args.Keys.Select(p=>p.ToString()))},\n{PROMPT}\nThe response must be within {MaxTokens.ToString()} number of Tokens.\nDo NOT make up API endpoints. Only use the avaiable API below\n{GET_API_DOCUMENTATION}";
     }
 }
 // [MoonSharpUserData]
@@ -244,37 +252,39 @@ public class NarratorApi
             }
         });
     }
-
-    internal DynValue prompt(params DynValue[] args)
+    public DynValue prompt(DynValue argsTable)
     {
-        return DynValue.NewString(NarratorPrompts.prompt(args.Select(p=>p.ToString()).ToArray(), _ParentMod.MaxTokens));
+        if (argsTable.Type != DataType.Table)
+        {
+            throw new ScriptRuntimeException("Expected a table as input for prompt");
+        }
+
+        var variables = new Dictionary<string, string>();
+        var userVarsTable = _ParentMod.script.Globals.Get("uservar").Table;
+
+        foreach (TablePair pair in argsTable.Table.Pairs)
+        {
+            if (pair.Value.Type == DataType.Table)
+            {
+                var innerTable = pair.Value.Table;
+                if (innerTable.Length >= 2)
+                {
+                    string key = innerTable[1].ToString();
+                    string value = innerTable[2].ToString();
+                    variables[key] = value;
+
+                    // Add the variable to the uservars table
+                    userVarsTable[key] = DynValue.NewString(value);
+                }
+            }
+        }
+
+        string result = NarratorPrompts.prompt(variables, _ParentMod.MaxTokens);
+        return DynValue.NewString(result);
     }
+
     public DynValue prompt()
     {
-        return prompt(new DynValue[0]);
-    }
-    public DynValue prompt(DynValue arg1)
-    {
-        return prompt(new DynValue[1]{arg1});
-    }
-    public DynValue prompt(DynValue arg1, DynValue arg2)
-    {
-        return prompt(new DynValue[2]{arg1,arg2});
-    }
-    public DynValue prompt(DynValue arg1, DynValue arg2, DynValue arg3)
-    {
-        return prompt(new DynValue[3]{arg1,arg2,arg3});
-    }
-    public DynValue prompt(DynValue arg1, DynValue arg2, DynValue arg3, DynValue arg4)
-    {
-        return prompt(new DynValue[4]{arg1,arg2,arg3,arg4});
-    }
-    public DynValue prompt(DynValue arg1, DynValue arg2, DynValue arg3, DynValue arg4, DynValue arg5)
-    {
-        return prompt(new DynValue[5]{arg1,arg2,arg3,arg4,arg5});
-    }
-    public DynValue prompt(DynValue arg1, DynValue arg2, DynValue arg3, DynValue arg4, DynValue arg5, DynValue arg6)
-    {
-        return prompt(new DynValue[6]{arg1,arg2,arg3,arg4,arg5,arg6});
+        return prompt(DynValue.NewTable(_ParentMod.script));
     }
 }
