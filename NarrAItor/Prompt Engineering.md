@@ -112,7 +112,16 @@ Goals
 
 I'm convincing the LLM it's god then asking god to abide the laws of physics.
 
-Check (here for more info)["https://Github.com/sanokei/NarrAItor/"]
-#### Idea 2: The self calling mechniquism is evolution
+Check [the Style Guide for more info]("https://github.com/Sanokei/NarrAItorblob/main/NarratorStyleGuide.md")
+#### Idea 2: The self calling mechanism is evolution
 We tell it to stop calling itself when it does `narrator:think()`
-meaning when it loops and calls it again, it learns not to loop to finally kill itself from facing immortality. Which we all know would suck.
+Meaning when it loops and calls it again, it learns not to loop to finally kill itself from facing immortality. [Which we all know would suck.](https://www.reddit.com/r/unpopularopinion/comments/m1t0u4/immortality_would_suck/)
+
+Now the real question is do we tell the LLM this plan, or just let it be oblivious as it dooms itself in hell until my Anthropic credits burn up.
+
+I think its familiar to chain of thought, but in my unoptimized fashion, is the most brute force option. However, I believe that with lots of compute, any brute force method can keep going while a algorithm will get longer to spit out a new answer.
+
+The question is if it is content with having each iteration calling `narrator:think()` if we feed the previous prompt in with it, to make it understand what it's doing? I think leaving it out for now is a good idea.
+
+#### Idea 3: `uservar` standardization
+Giving specific uses for the names that you can add to the `uservar` global should bring down the misuse of it. I think this ties into the [Style Guide](https://github.com/Sanokei/NarrAItor/blob/main/NarrAItor/Prompt%20Engineering.md#idea-1-style-guide) idea, but just as important to bring up as a separate idea. 

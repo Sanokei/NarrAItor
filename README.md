@@ -1,6 +1,10 @@
 # NarrAItor
 A narrator that comments on your life. Moddable using a lua Anthropic binder.
 
+## Links
+- [Documentation](https://github.com/Sanokei/NarrAItor/blob/main/Documentation.md)
+- [Blog - Obsidian](https://github.com/Sanokei/NarrAItor/blob/main/NarrAItor/)
+
 ## What is NarrAItor?
 A lua binding with Anthropic made for an LLM to use to create a narration of a person's life.
 When running the program, Anthropic will be prompted to create a lua script using the API below to create a customized narrator for your life.

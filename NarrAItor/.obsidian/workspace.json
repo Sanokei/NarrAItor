@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "574851ca12c29da6",
+        "id": "1578277924da29fd",
         "type": "tabs",
         "children": [
           {
-            "id": "bcff5f394b12f62a",
+            "id": "fb65a5b9d04f2417",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -146,9 +146,14 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "108dd8b37ed0d193",
+  "active": "fb65a5b9d04f2417",
   "lastOpenFiles": [
+    "Video.md",
     "Prompt Engineering.md",
+    "Prompt.md",
+    "Prompt_Engineering.md",
+    "PromptEngineering.md",
+    "[[Prompt.md",
     "Style Guide.md",
     "Welcome.md",
     "create a link.md"
