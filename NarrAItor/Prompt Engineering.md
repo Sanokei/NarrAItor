@@ -125,3 +125,11 @@ The question is if it is content with having each iteration calling `narrator:th
 
 #### Idea 3: `uservar` standardization
 Giving specific uses for the names that you can add to the `uservar` global should bring down the misuse of it. I think this ties into the [Style Guide](https://github.com/Sanokei/NarrAItor/blob/main/NarrAItor/Prompt%20Engineering.md#idea-1-style-guide) idea, but just as important to bring up as a separate idea. 
+
+#### Idea 4: ???
+///\*
+
+Example of what im trying to say:
+You make a youtube bot that does super covert tools which are to ask an LLM generate a comment for the video with a time stamp, of a 20 - 26 year old male. Then get the LLM to reply to them with "write a comment to this comment." prompt and 
+
+\*/

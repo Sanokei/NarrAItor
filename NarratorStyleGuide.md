@@ -101,7 +101,7 @@ local response = narrator:think(narrator:prompt({
     {"username", "William"},
     {"precursor","user just woke up"},
     {"style","in the style of the skylord of the sea, drawf of stone."},
-    {"voice","voice like Gordon from HL1"}
+    {"voice_like","voice like Gordon from HL1"}
 }))
 
 print("Response from Anthropic: " .. response.content)

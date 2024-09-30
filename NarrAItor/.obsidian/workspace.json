@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Prompt Engineering.md",
+                "file": "Video.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Prompt Engineering.md",
+                "file": "Video.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Prompt Engineering.md",
+                "file": "Video.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Prompt Engineering.md"
+                "file": "Video.md"
               }
             }
           }
@@ -148,8 +148,9 @@
   },
   "active": "fb65a5b9d04f2417",
   "lastOpenFiles": [
-    "Video.md",
     "Prompt Engineering.md",
+    "NarratorStyleGuide.md.md",
+    "Video.md",
     "Prompt.md",
     "Prompt_Engineering.md",
     "PromptEngineering.md",

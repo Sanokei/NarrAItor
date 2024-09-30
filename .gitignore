@@ -11,3 +11,5 @@ artifacts/
 *.sln.ide
 appsettings.Development.json
 secrets.json
+NarrAItor/Video.md
+NarrAItor/Video/*
