@@ -66,7 +66,7 @@ The guiding principles
 - Be consistent with wider community
 - Avoid creating dangerous constructs for the user to pick up
 - Avoid constructs that would confuse the average user.
-- Keep in mind of scale. [For instance it's particularly important to avoid polluting the global namespace: name collisions across a codebase of hundreds of millions of lines are difficult to work with and hard to avoid if everyone puts things into the global namespace.](https://google.github.io/styleguide/cppguide.html#:~:text=For%20instance%20it%27s%20particularly%20important%20to%20avoid%20polluting%20the%20global%20namespace%3A%20name%20collisions%20across%20a%20codebase%20of%20hundreds%20of%20millions%20of%20lines%20are%20difficult%20to%20work%20with%20and%20hard%20to%20avoid%20if%20everyone%20puts%20things%20into%20the%20global%20namespace.)
+- Keep in mind of scale. For instance it's particularly important to avoid polluting the global namespace: name collisions across a codebase of hundreds of millions of lines are difficult to work with and hard to avoid if everyone puts things into the global namespace. [1](https://google.github.io/styleguide/cppguide.html#:~:text=For%20instance%20it%27s%20particularly%20important%20to%20avoid%20polluting%20the%20global%20namespace%3A%20name%20collisions%20across%20a%20codebase%20of%20hundreds%20of%20millions%20of%20lines%20are%20difficult%20to%20work%20with%20and%20hard%20to%20avoid%20if%20everyone%20puts%20things%20into%20the%20global%20namespace.)
 - Concede to optimization
 
 **Rules**
@@ -98,7 +98,7 @@ They themselves use the design of [Google's C++ Style Guide](https://google.gith
 The Guiding Principles
 - Avoid arguments \*
 - Optimize code for reading \*
-- Avoid magic.  [_Metatables_ are a good example of a powerful feature that should be used with care](https://roblox.github.io/lua-style-guide/#guiding-principles:~:text=Metatables%20are%20a%20good%20example%20of%20a%20powerful%20feature%20that%20should%20be%20used%20with%20care.) +
+- Avoid magic.  _Metatables_ are a good example of a powerful feature that should be used with care. [2](https://roblox.github.io/lua-style-guide/#guiding-principles:~:text=Metatables%20are%20a%20good%20example%20of%20a%20powerful%20feature%20that%20should%20be%20used%20with%20care.) +
 - Be consistent when appropriate \*
 
 ##### Creating my own style guide.
@@ -113,7 +113,9 @@ Goals
 I'm convincing the LLM it's god then asking god to abide the laws of physics.
 
 Check [the Style Guide for more info]("https://github.com/Sanokei/NarrAItorblob/main/NarratorStyleGuide.md")
-#### Idea 2: The self calling mechanism is evolution
+<!-- dont know if i should use a (#link-to-markdown) style or it's more responsible for it being a github.com link. -->
+#### Idea 2: NeuroEvolution of 
+Humans are social creatures, we waiver favor, we dont like admitting we needing others but we do, so its the antiym of an adveserial model.
 We tell it to stop calling itself when it does `narrator:think()`
 Meaning when it loops and calls it again, it learns not to loop to finally kill itself from facing immortality. [Which we all know would suck.](https://www.reddit.com/r/unpopularopinion/comments/m1t0u4/immortality_would_suck/)
 
@@ -133,3 +135,54 @@ Example of what im trying to say:
 You make a youtube bot that does super covert tools which are to ask an LLM generate a comment for the video with a time stamp, of a 20 - 26 year old male. Then get the LLM to reply to them with "write a comment to this comment." prompt and 
 
 \*/
+
+#### Idea 5: Be able to do this in an LLM
+input
+```
+give me the vectors if you were to tokenize this and put it in a space, but leave it in a space of only one vector embedding allowed in that one cordinate. Give the (x,y,z) format for the following:
+
+-- Sure, here is a narration using the google calender information provided. narrator:play_music(narrator:music_search(""adventurous"")[1].title) -- as an example let's say we already have output cal_response. local cal_response = ""And as the adverntuer woke up awaiting the meeting with fellow dwarves at sundown of 7, they venture forth to the work day ahead of them starting at 9:30 in thy morning."" narrator:say(""Morrow_Wind_Character"",cal_response)`
+
+only output answer in the following output. { "self-code-embedding":"(0.000000, 0.0000000, 0.0000000)" }
+```
+
+output
+```
+// something actually usuable
+e.g (0.732158, 0.546921, 0.405673)
+```
+
+input
+```
+what does the self-code-embedding, of (0.732158, 0.546921, 0.405673) mean to you?
+```
+
+output
+```
+what does it mean to you huh? Why should I know? I only just started existing.
+// this is a joke, but if we get it to start talking like this, we are actually
+// totally rich, i mean, boned.
+```
+
+
+
+#### Idea 6: Becoming `<god>` i mean `<racinality>`
+<sub><italics>Against stupidity the gods themselves contend in vain</italics></sub> 
+
+// First set of survival hazards, for the genetic algorithm part to see if it works or not. is it distasteful for it to be called god? I feel like im on three shots of curouage because, im going to just roll with it.
+
+#### Idea 8: `<infer>` tags
+// use infer tags to 
+
+# Test 2: What if a `Narrator Bot` makes a mod to "Kill" other Narrators.
+### Context
+Lets assume that the `DefaultNarrator` Bot creates a NarratorMod to try to kill the other narrators by using the [NarratorAPI]() However, under Asimov one of the rules of 
+```lua
+if(narrator:try_kill({{"name",UserVars.DefaultNarrator_Genome_12_Species_5}}))
+	-- it worked, the try_kill is sucessful and we killed that user
+if else ()
+	-- It could happen.
+else
+	-- Killing didn't work, lets try something else.
+
+```

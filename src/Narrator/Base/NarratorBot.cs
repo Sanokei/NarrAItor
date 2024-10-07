@@ -4,7 +4,7 @@ using NarrAItor.Narrator.NarratorExceptions;
 using NarrAItor.Narrator.Modding;
 
 namespace NarrAItor.Narrator;
-public class NarratorObject : INarratable
+public class NarratorBot : INarratable
 {
     // System Defaults
     private const string DEFAULT_DOCUMENTATION_PATH = "./Narrators/DefaultNarrator/docs/";

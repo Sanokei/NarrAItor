@@ -1,4 +1,4 @@
-# Lua binding API
+# Narrator Mod API
 The lua API that wraps the C# Anthropic.SDK for the LLM to use to create functionality.
 
 ## Anthropic.SDK
@@ -12,7 +12,7 @@ The message to be marked as `Role.Assistant`
 ## narrator
 The narrator is the main component that can be used to call differing functions. Can be used in lua just as an object `narrator`. It's best practice to explictly call narrator methods using `:`.
 
-## Narrator Methods
+## Narrator Lua binding Methods
 The methods to interact with the NarratorAPI
 ### string __prompt(Table kwargs)__
 Standardized prompt to be able to get back responses that fit the API schema.
@@ -38,10 +38,10 @@ The printable phrase
 ``` lua
 narrator:print("Hello World")
 ```
-
+<!-- FIXME: change say to be say(object[] args) -->
 ### async void __say(string Voice, string Phrase)__
 Uses <> to say a phrase using a specific voice.
-#### parameters
+#### parametersx
 ##### string __Voice__
 The voice of the ai
 ##### string __Phrase__
