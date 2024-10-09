@@ -13,7 +13,7 @@ using System.Reflection.Metadata;
 
 namespace NarrAItor.Narrator.Modding;
 
-class NarratorMod
+public class NarratorMod
 {
     static Timer _UpdateTimer;
     static readonly object _LockObject = new object();
@@ -53,6 +53,8 @@ class NarratorMod
             });
         });
         // Because you only can set one narrator and not mulitple this is going to just be a global
+        // FIXME: The NarratorBot here should be the parent with the mod attached 
+        // FIXME: The "narrator" should be replaced by the modname
         script.Globals["narrator"] = new NarratorApi(this, new NarratorBot());
         
         script.Globals["AsAssistantMessage"] = (Func<string, DynValue>)(content =>
@@ -76,7 +78,7 @@ class NarratorMod
         }
     }
     public ScriptFunctionDelegate onAwake, onStart, onUpdate;
-    public Script script = new();
+    public Script script = new(); // FIXME: This MAY be the way to do it, im not really sure.
 
     public async Task Run()
     {

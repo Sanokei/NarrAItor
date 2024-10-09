@@ -12,6 +12,10 @@ using NarrAItor.Narrator;
 using System.Reflection.Metadata;
 
 namespace NarrAItor.Narrator.Modding;
+/// <summary>
+/// The base "NarratorMod" that allows for the NarratorMods to exist.
+/// Basically just a wrapper mod for Anthropic.SDK
+/// </summary>
 
 public class NarratorApi
 {
@@ -109,8 +113,11 @@ public class NarratorApi
                 }
             }
         }
-
-        string result = NarratorPrompts.prompt(variables, _ParentMod.MaxTokens);
+        string result = NarratorPrompts.prompt(new Dictionary<string, object>
+        {
+            { "uservars", variables },
+            { "maxtokens", _ParentMod.MaxTokens }
+        });
         return DynValue.NewString(result);
     }
 

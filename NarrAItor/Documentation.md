@@ -41,7 +41,7 @@ narrator:print("Hello World")
 <!-- FIXME: change say to be say(object[] args) -->
 ### async void __say(string Voice, string Phrase)__
 Uses <> to say a phrase using a specific voice.
-#### parametersx
+#### parameters
 ##### string __Voice__
 The voice of the ai
 ##### string __Phrase__

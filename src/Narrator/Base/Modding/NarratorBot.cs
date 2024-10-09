@@ -62,4 +62,10 @@ public class NarratorBot : INarratable
         Documentation = JsonConvert.SerializeObject(DocFiles);
         return Documentation;
     }
+
+    // Rememberered Mods from other generations/genomes/species 
+    public Dictionary<string, NarratorMod> RememberedMods = new();
+
+    // Contains a collection of NarratorMods
+    public Dictionary<string, NarratorMod> InstalledMods = new();
 }

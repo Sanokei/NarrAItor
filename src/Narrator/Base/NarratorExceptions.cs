@@ -1,5 +1,9 @@
 namespace NarrAItor.Narrator.NarratorExceptions;
 
+/// <summary>
+/// Use Exceptions very carefully. Within the lua binding instead of errors, there will be
+/// tags to give the LLM more chances to get something right.
+/// </summary>
 public struct Errors
 {
 
