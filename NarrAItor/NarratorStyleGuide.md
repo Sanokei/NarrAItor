@@ -1,4 +1,3 @@
-# Narrator Lua Style Guide
 This style guide aims to standardize narrators across prompt iterations.
 
 This guide is designed after [Roblox Lua Style Guide](https://roblox.github.io/lua-style-guide/#guiding-principles) and [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)
@@ -25,7 +24,7 @@ Commonly what happens, is that a LLM will create a function in the output to cal
 BAD
 ```lua
 local function createNarration()
-    narrator:say("robot", "beep boop")
+    chirp:say("robot", "beep boop")
 end
 
 createNarration()
@@ -37,72 +36,51 @@ Do not use prompt and think for the inputted variables.
 The LLM will put off work and pass it along to itself using prompt and think. Make sure to avoid this pitfall.
 ### Input
 ```lua
-local response = narrator:think(narrator:prompt({
+local response = narrator:think({
     {"username", "William"},
     {"precursor","user just woke up"},
     {"style","in the style of the skylord of the sea, drawf of stone."},
     {"voice","voice like Gordon from HL1"}
-}))
+},narrator.prompt)
 
 print("Response from Anthropic: " .. response.content)
 ```
-### BAD Output
-```lua
-local response = narrator:think(uservar.style)
-narrator:say(narrator:voice_search(uservar.voice), response.content)
-```
-
-### GOOD Output
-```lua
-narrator:play_music(narrator:music_search(uservar.style)[1].title)
-narrator:say(narrator:voice_search(uservar.voice),"In thy peril, the adventurer Sir William of Dervinia awoke. Long for the day ahead of him.")
-```
-
-## uservar
-Use the uservars for variable use.
-
-There are uservars that are created when prompting.
-
+## `uservars`
+Use `uservars` for variable use. Create, edit, and delete `uservars`.
 ### Input
 ```lua
-local response = narrator:think(narrator:prompt({
-    {"username","William"},
-    {"precursor","user just woke up"},
-    {"music_style","fantasy"},
-    {"voice","adventerous"}
+local response = narrator:think({
+	{{"name",uservars.name}}
 }))
 
 print("Response from Anthropic: " .. response.content)
 ```
-
 ### BAD Output
 ```lua
-narrator.play_music(narrator:music_search("fantasy"))
-narrator.say(narrator:voice_search("adventerous"),"In thy peril, the adventurer Sir William of Dervinia awoke. Long for the day ahead of him.")
+jukebox:play_music(jukebox:music_search("fantasy"))
+chirp:say(chirp:voice_search("adventerous"),"In thy peril, the adventurer Sir William of Dervinia awoke. Long for the day ahead of him.")
 ```
 
 ### GOOD Output
 ```lua
-narrator.play_music(narrator:music_search(uservar.music_style))
-narrator.say(narrator:voice_search(uservar.voice),"In thy peril, the adventurer Sir William of Dervinia awoke. Long for the day ahead of him.")
+jukebox:play_music(jukebox:music_search(uservar.music_style))
+chirp:say(chirp:voice_search(uservar.voice),"In thy peril, the adventurer Sir William of Dervinia awoke. Long for the day ahead of him.")
 ```
 
 They could be ignored by the LLM as they know the Value and could create their own variables or ignore doing any of that completely.
 
 Best practice would be for the LLM to just use the `uservars.<variable name>` moniqure instead.
-
 ## Tests and Error Handling
 Do not create tests or handle errors.
-If the LLM is doing a good job, it should only code correctly.
-
+If the LLM is doing a good job, it should only code correctly. All error handling is done by the API through tag coercion.
 ### Input
 ```lua
-local response = narrator:think(narrator:prompt({
+local response = narrator:think({
     {"username", "William"},
     {"precursor","user just woke up"},
     {"style","in the style of the skylord of the sea, drawf of stone."},
-    {"voice_like","voice like Gordon from HL1"}
-}))
+    {"voice","voice like Gordon from HL1"}
+},narrator.prompt)
 
 print("Response from Anthropic: " .. response.content)
 ```
@@ -111,9 +89,9 @@ print("Response from Anthropic: " .. response.content)
 
 ```lua 
 if working() then
-    narrator:say(narrator:voice_search(voice), "In thy peril, the adventurer Sir William of Dervinia awoke. Long for the day ahead of him.")
+    chirp:say(chirp:voice_search(uservars.voice), "In thy peril, the adventurer Sir William of Dervinia awoke. Long for the day ahead of him.")
 else
-    narrator:print("Failed to generate narration.")
+    print("Failed to generate narration.")
 end
 ```
 

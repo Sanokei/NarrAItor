@@ -4,21 +4,18 @@
     "type": "split",
     "children": [
       {
-        "id": "8ca4fd9a048a073d",
+        "id": "a3ae95d05efef9ff",
         "type": "tabs",
         "children": [
           {
-            "id": "6ecc3a74b7128cb1",
+            "id": "13a5a76c401d2a1e",
             "type": "leaf",
             "state": {
-              "type": "canvas",
+              "type": "markdown",
               "state": {
-                "file": "Video/Outline.canvas",
-                "viewState": {
-                  "x": 1070,
-                  "y": -883.5,
-                  "zoom": -1.82008754749457
-                }
+                "file": "NarratorStyleGuide.md",
+                "mode": "source",
+                "source": false
               }
             }
           }
@@ -51,7 +48,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "uservars",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -88,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Video/Outline.canvas",
+                "file": "NarratorStyleGuide.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -105,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Video/Outline.canvas",
+                "file": "NarratorStyleGuide.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -128,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Video/Outline.canvas"
+                "file": "NarratorStyleGuide.md"
               }
             }
           }
@@ -149,14 +146,22 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "6ecc3a74b7128cb1",
+  "active": "13a5a76c401d2a1e",
   "lastOpenFiles": [
-    "Documentation.md",
+    "NarratorAPI.md",
+    "NarratorStyleGuide.md",
+    "PromptEngineering.md",
+    "README.md",
+    "Video.md",
+    "().md",
+    "Sano's Mod Proposals/Mod Directory.md",
+    "NEAIL/NEAIL.md",
+    "Sano's Mod Proposals/Liam.md",
+    "Sano's Mod Proposals/Chirping Mod.md",
+    "Sano's Mod Proposals/Global Memory.md",
+    "Sano's Mod Proposals",
     "Video/Outline.canvas",
     "Video/Brainstorm.md",
-    "Video.md",
-    "PromptEngineering.md",
-    "NarratorStyleGuide.md",
     "NEAIL/README.md",
     "NEAIL",
     "Pasted image 20241003021208.png",

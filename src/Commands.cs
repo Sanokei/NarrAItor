@@ -13,10 +13,9 @@ public static class Commands
         CommandList.AddCommand(new Action<string[]>(Help), "help", "h", "?");
         CommandList.AddCommand(new Action<string[]>(Version), "version", "v");
         CommandList.AddCommand(new Action<string[]>(BearerToken), "bearertoken");
-        CommandList.AddCommand(new Action<string[]>(LoadNarrator), "loadnarrator", "loadmod", "load");
         CommandList.AddCommand(new CommandMap.AsyncCommandAction(UnitTest), "unittest", "test", "t");
 
-        CommandActions.AddRange(new Delegate[] { Help, Version, BearerToken, LoadNarrator, UnitTest });
+        CommandActions.AddRange(new Delegate[] { Help, Version, BearerToken, UnitTest });
     }
 
     public static void Help(string[] args)
@@ -43,11 +42,6 @@ public static class Commands
         Environment.SetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY, args[0]);
     }
 
-    public static void LoadNarrator(string[] args)
-    {
-        // Use config instead.
-        // Environment.SetEnvironmentVariable("NarratorType", args[0]);
-    }
     /// <summary>
     /// Not so UnitTesting.
     /// </summary>
@@ -59,10 +53,10 @@ public static class Commands
         UnitTests.Add("luabinding", () => {
             Console.WriteLine("\nLua binding with Narrator `narrator.print(\"Test Working\")`");
             // Create Lua bindings
-            NarrAItor.Narrator.Modding.NarratorMod test = new("","narrator.print(\"Test Working\")");
-            // Request the LLM Provider
-            test.Initialize();
-            test.Run();
+            // NarrAItor.Narrator.Modding.NarratorMod test = new("","narrator.print(\"Test Working\")");
+            // // Request the LLM Provider
+            // test.Initialize();
+            // test.Run();
             Console.WriteLine("\nexpected result: Test Working\n");
         });
 
@@ -94,9 +88,9 @@ public static class Commands
             ";
             try
             {
-                NarrAItor.Narrator.Modding.NarratorMod test = new("", testing);
-                test.Initialize();
-                await test.Run();
+                // NarrAItor.Narrator.Modding.NarratorMod test = new("", testing);
+                // test.Initialize();
+                // await test.Run();
             }
             catch (Exception ex)
             {
@@ -123,10 +117,11 @@ public static class Commands
             ";
             try
             {
-                NarrAItor.Narrator.Modding.NarratorMod test = new("", testing);
-                var script = test.Initialize();
-                script.Globals["demo"] = typeof(Demo);
-                await test.Run();
+                // NarrAItor.Narrator.NarratorBot bot = new();
+                // NarrAItor.Narrator.Modding.NarratorMod test = new("", testing);
+                // var script = test.Initialize();
+                // script.Globals["demo"] = typeof(Demo);
+                // await test.Run();
             }
             catch (Exception ex)
             {
@@ -143,9 +138,9 @@ public static class Commands
             ";
             try
             {
-                NarrAItor.Narrator.Modding.NarratorMod test = new("", testing);
-                test.Initialize();
-                await test.Run();
+                // NarrAItor.Narrator.Modding.NarratorMod test = new("", testing);
+                // test.Initialize();
+                // await test.Run();
             }
             catch (Exception ex)
             {

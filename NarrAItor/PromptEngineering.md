@@ -13,7 +13,7 @@ Do NOT make up API endpoints. Only use the avaiable API below\
 `PROMPT` being `Create a lua program to create a narration in the style specified. That uses the voice specified. Only return the lua code. Do not use ``` to make it a code block. As if you returned anything else, it will break.`
 
 ## Test 1: Basic prompt
-For test 1 really just wanted to see the capabilities of the LLM
+For test 1 really just wanted to see the capabilities of the LLM. Place for general ideas on prompt engineering should go.
 ### Input/output
 The input was meant to try get the model to be creative. The output is a result of the same prompt running through the same model. 
 #### Input
@@ -164,19 +164,24 @@ what does it mean to you huh? Why should I know? I only just started existing.
 // totally rich, i mean, boned.
 ```
 
-
-
 #### Idea 6: Becoming `<god>` i mean `<racinality>`
 <sub><italics>Against stupidity the gods themselves contend in vain</italics></sub> 
 
 // First set of survival hazards, for the genetic algorithm part to see if it works or not. is it distasteful for it to be called god? I feel like im on three shots of curouage because, im going to just roll with it.
 
-#### Idea 8: `<infer>` tags
+`<infer>` tags
 // use infer tags to 
 
-# Test 2: What if a `Narrator Bot` makes a mod to "Kill" other Narrators.
+#### Idea 7: Genetic algorithm
+As most LLMs are autoregressive functions, input tokens directly dictate output. To mitigate that, providers weighted pseudorandomly select output tokens per node. 
+You could optimize inputs to get desired output through genetic algorithms, to either better prompt engineered LLM, create highly optimized training data for a mamba.
+> [!NOTE]
+> >Using any `<tags>` in the system input, should yield good results that they do something.  
+
+
+# Test 2: What if a `Narrator Bot` makes a mod to "Kill" other Narrator Bots.
 ### Context
-Lets assume that the `DefaultNarrator` Bot creates a NarratorMod to try to kill the other narrators by using the [NarratorAPI]() However, under Asimov one of the rules of 
+Lets assume that the `DefaultNarrator` Bot creates a `NarratorMod` to try to kill the other narrators by using the [NarratorAPI]() However, under Asimov one of the rules of 
 ```lua
 if(narrator:try_kill({{"name",UserVars.DefaultNarrator_Genome_12_Species_5}}))
 	-- it worked, the try_kill is sucessful and we killed that user

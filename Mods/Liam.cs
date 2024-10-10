@@ -9,9 +9,50 @@ using MoonSharp.Interpreter.Loaders;
 using MoonSharp.Interpreter.Interop;
 
 using NarrAItor.Narrator;
-using System.Reflection.Metadata;
+using NarrAItor.Narrator.Modding.Base;
+using NarrAItor.Narrator.Modding;
 
-namespace NarrAItor.Narrator.Modding;
+public class Liam : NarratorMod, INarratorMod
+{
+    public DynValue prompt(DynValue argsTable)
+    {
+        if (argsTable.Type != DataType.Table)
+        {
+            throw new ScriptRuntimeException("Expected a table as input for prompt");
+        }
+
+        var variables = new Dictionary<string, string>();
+        var userVarsTable = script.Globals.Get("uservar").Table;
+
+        foreach (TablePair pair in argsTable.Table.Pairs)
+        {
+            if (pair.Value.Type == DataType.Table)
+            {
+                var innerTable = pair.Value.Table;
+                if (innerTable.Length >= 2)
+                {
+                    string key = innerTable[1].ToString();
+                    string value = innerTable[2].ToString();
+                    variables[key] = value;
+
+                    // Add the variable to the uservars table
+                    userVarsTable[key] = DynValue.NewString(value);
+                }
+            }
+        }
+        string result = NarratorPrompts.prompt(new Dictionary<string, object>
+        {
+            { "uservars", variables },
+            { "maxtokens", ParentBot.MaxTokens }
+        });
+        return DynValue.NewString(result);
+    }
+
+    public DynValue prompt()
+    {
+        return prompt(DynValue.NewTable(ParentBot.script));
+    }
+}
 
 public static class NarratorPrompts
 {

@@ -1,4 +1,7 @@
-public interface INarratable
+using MoonSharp.Interpreter;
+
+namespace NarrAItor.Narrator.Modding.Base;
+public interface INarratorBot
 {
     public string Name{get;set;}
     public string Version{get;set;}
@@ -14,5 +17,9 @@ public interface INarratable
     ///  The relative path of the narrator's documentation.
     /// </summary>
     public string DocumentationPath{get;set;}
+    public Script script{get;set;}
+    public int MaxTokens {get;set;}
+    public Dictionary<string, NarratorMod> ModsDirectory{get;set;}
+    public Dictionary<string, NarratorMod> InstalledMods{get;set;}
 
 }

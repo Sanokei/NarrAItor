@@ -10,34 +10,65 @@ using MoonSharp.Interpreter.Interop;
 
 using NarrAItor.Narrator;
 using System.Reflection.Metadata;
+using NarrAItor.Narrator.Modding.Base;
 
 namespace NarrAItor.Narrator.Modding;
-
-public class NarratorMod
+/// <summary>
+/// Acts as the base mod for all
+/// </summary>
+public class NarratorMod : INarratorMod
 {
+    public NarratorMod()
+    {
+        INarratorMod.OnAddedEvent += OnEnable;
+        INarratorMod.OnRemovedEvent += OnDisable;
+
+        INarratorMod.OnAddedEvent?.Invoke(ParentBot);
+    }
+    ~NarratorMod()
+    {
+        INarratorMod.OnRemovedEvent?.Invoke(ParentBot);
+
+        INarratorMod.OnAddedEvent -= OnEnable;
+        INarratorMod.OnRemovedEvent -= OnDisable;
+    }
+
+    
+    /*
+        //WARNING: This MAY be the way to do it, im not really sure.
+
+        So the way I see it right now is that, script control within the mod is not strictly nessesary.
+        It may be more optimal to have every mod have their own script so during NEAIL stage, it could run in parrallel.
+        As the Google C++ style guide says, always bend to optimization.
+    */
+    public Script script; // = new();
+    
+    public ScriptFunctionDelegate onAwake, onStart, onUpdate;
+    string _LuaFileData = "";
+    public string LuaFileData { get => _LuaFileData; set => _LuaFileData = value; }
+    private INarratorBot _ParentBot;
+    public INarratorBot ParentBot{get => _ParentBot;set => _ParentBot = value;}
+
+    // fucking run-order shit
+    public void OnEnable(INarratorBot ParentBot)
+    {
+        this.ParentBot = ParentBot;
+    }
+
+    public void OnDisable(INarratorBot ParentBot)
+    {
+        this.ParentBot = null;
+    }
     static Timer _UpdateTimer;
     static readonly object _LockObject = new object();
-    public int MaxTokens = 250;
-    public string LuaFileData = "";
-    // Asssume the path and NarratorName are different.
-    public string PathToMod = "";
-    public NarratorMod(string RelativePath, string LuaFileData)
+   
+    private NarratorMod InitializeNarratorMod()
     {
-        this.LuaFileData = LuaFileData;
-        this.PathToMod = Path.Join(Directory.GetCurrentDirectory(), RelativePath);
+        return new NarratorMod();
     }
-    private void InitializeUserVarsTable()
+    private void InitializeScript()
     {
-        if (script.Globals.Get("uservars").Type == DataType.Nil)
-        {
-            script.Globals["uservars"] = new Table(script);
-        }
-    }
-
-    public Script Initialize()
-    {
-        UserData.RegisterType<NarratorApi>();
-        
+        UserData.RegisterType<NarratorApi>();   
         // FIXME: set path.
         // ((ScriptLoaderBase)script.Options.ScriptLoader).ModulePaths = ScriptLoaderBase.UnpackStringPaths(System.IO.Path.Combine("/modules/","?") + ".lua");
         
@@ -52,10 +83,8 @@ public class NarratorMod
                 DynValue.FromObject(script, new AnonWrapper<TaskDescriptor>(task))
             });
         });
-        // Because you only can set one narrator and not mulitple this is going to just be a global
-        // FIXME: The NarratorBot here should be the parent with the mod attached 
         // FIXME: The "narrator" should be replaced by the modname
-        script.Globals["narrator"] = new NarratorApi(this, new NarratorBot());
+        script.Globals["narrator"] = new NarratorApi(this);
         
         script.Globals["AsAssistantMessage"] = (Func<string, DynValue>)(content =>
         {
@@ -64,10 +93,23 @@ public class NarratorMod
             table["content"] = content;
             return DynValue.NewTable(table);
         });
-
+    }
+    private void InitializeUserVarsTable()
+    {
+        if (script.Globals.Get("uservars").Type == DataType.Nil)
+        {
+            script.Globals["uservars"] = new Table(script);
+        }
+    }
+    /// <summary>
+    /// Runs when added to a Narrator Bot.
+    /// </summary>
+    ///
+    public void Initialize()
+    {
+        InitializeNarratorMod();
+        InitializeScript();
         InitializeUserVarsTable();
-
-        return script;
     }
 
     void Update(object state)
@@ -77,8 +119,6 @@ public class NarratorMod
             onUpdate?.Invoke();
         }
     }
-    public ScriptFunctionDelegate onAwake, onStart, onUpdate;
-    public Script script = new(); // FIXME: This MAY be the way to do it, im not really sure.
 
     public async Task Run()
     {
@@ -87,18 +127,22 @@ public class NarratorMod
         onStart = script.Globals.Get("Start") != DynValue.Nil ? script.Globals.Get("Start").Function.GetDelegate() : null;
         
         _UpdateTimer = new Timer(Update, null, 0, 16);
+
         try
         {
             DynValue fn = await script.DoStringAsync(LuaFileData);
         }
         catch (Exception e)
         {
+            // give the error back to the llm?
+            
             Console.WriteLine("The lua script abort with exception. \n{0}", e);
         } 
         onAwake?.Invoke();
         onStart?.Invoke();  
         onUpdate = script.Globals.Get("Update") != DynValue.Nil ? script.Globals.Get("Update").Function.GetDelegate() : null; 
     }
+
     public static List<Message> BuildMessagesListFromTable(Table MessagesTable)
     {
         var messages = new List<Message>();
@@ -112,7 +156,7 @@ public class NarratorMod
             else if (pair.Value.Type == DataType.Table)
             {
                 var table = pair.Value.Table;
-                if (table.Get("role").String == "assistant")
+                if (table.Get("role").String == "assistant") // still O(N+1)? lol
                 {
                     messages.Add(new Message (RoleType.Assistant, table.Get("content").String ));
                 }

@@ -19,11 +19,19 @@ namespace NarrAItor.Narrator.Modding;
 
 public class NarratorApi
 {
-    NarratorMod _ParentMod;
-    public NarratorBot Narrator;
-    internal NarratorApi(NarratorMod parent, NarratorBot Narrator)
+    /// <summary>
+    /// Store info on who is the parent mod, but keep as protected as possible
+    /// </summary>
+    internal NarratorMod _ParentMod;
+
+    // public NarratorBot Narrator;
+    // internal NarratorApi(NarratorMod parent, NarratorBot Narrator)
+    // {
+    //     this.Narrator = Narrator;
+    //     this._ParentMod = parent;
+    // }
+    internal NarratorApi(NarratorMod parent)
     {
-        this.Narrator = Narrator;
         this._ParentMod = parent;
     }
     /// <summary>
@@ -77,7 +85,7 @@ public class NarratorApi
         {
             try
             {
-                var response = await LLM.Anthropic.Ask(messages, _ParentMod.MaxTokens);
+                var response = await LLM.Anthropic.Ask(messages, _ParentMod.ParentBot.MaxTokens); // slow way of getting maxtokens
                 return _ParentMod.BuildDynValueFromMessagesAndResponse(messages, response);
             }
             catch (Exception ex)
@@ -86,43 +94,5 @@ public class NarratorApi
                 throw;
             }
         });
-    }
-    public DynValue prompt(DynValue argsTable)
-    {
-        if (argsTable.Type != DataType.Table)
-        {
-            throw new ScriptRuntimeException("Expected a table as input for prompt");
-        }
-
-        var variables = new Dictionary<string, string>();
-        var userVarsTable = _ParentMod.script.Globals.Get("uservar").Table;
-
-        foreach (TablePair pair in argsTable.Table.Pairs)
-        {
-            if (pair.Value.Type == DataType.Table)
-            {
-                var innerTable = pair.Value.Table;
-                if (innerTable.Length >= 2)
-                {
-                    string key = innerTable[1].ToString();
-                    string value = innerTable[2].ToString();
-                    variables[key] = value;
-
-                    // Add the variable to the uservars table
-                    userVarsTable[key] = DynValue.NewString(value);
-                }
-            }
-        }
-        string result = NarratorPrompts.prompt(new Dictionary<string, object>
-        {
-            { "uservars", variables },
-            { "maxtokens", _ParentMod.MaxTokens }
-        });
-        return DynValue.NewString(result);
-    }
-
-    public DynValue prompt()
-    {
-        return prompt(DynValue.NewTable(_ParentMod.script));
     }
 }

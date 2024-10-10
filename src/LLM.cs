@@ -15,8 +15,6 @@ public static class Anthropic
 {
     public static async Task<MessageResponse> Ask(List<Message> messages, int MaxTokens)
     {
-        if (MaxTokens < 250)
-            Console.WriteLine("A higher token count is recomended.");
         // TODO: maybe use SecureString?
         string apiKey = Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY) ?? throw new Exception($"{Config.Names.Secrets.ANTHROPIC_API_KEY} never passed.\nUsage: --BearerToken \"api-key\"");
         using var api = new AnthropicClient(apiKey);
@@ -29,7 +27,7 @@ public static class Anthropic
                 Messages = messages,
                 MaxTokens = MaxTokens,
                 Stream = false,
-                Temperature = 1.0m,
+                Temperature = 0.3m,
             }
         );
         return response;
