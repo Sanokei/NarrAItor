@@ -34,23 +34,6 @@ public class NarratorApi
     {
         this._ParentMod = parent;
     }
-    /// <summary>
-    /// Prints Phrase to Console
-    /// </summary>
-    /// <param name="Phrase">The phrase to be printed to the console</param>
-    public void print(string Phrase)
-    {
-        Console.WriteLine(Phrase);
-    }
-
-    /// <summary>
-    /// Use <> text to speech to speak the phrase given.
-    /// </summary>
-    /// <param name="Phrase">The phrase to be spoken</param>
-    public void say(string Voice, string Phrase)
-    {
-        throw new NotImplementedException();
-    }
 
     // public async Task<DynValue> think(DynValue MessagesTable)
     // {
@@ -86,7 +69,7 @@ public class NarratorApi
             try
             {
                 var response = await LLM.Anthropic.Ask(messages, _ParentMod.ParentBot.MaxTokens); // slow way of getting maxtokens
-                return _ParentMod.BuildDynValueFromMessagesAndResponse(messages, response);
+                return BuildDynValueFromMessagesAndResponse(messages, response);
             }
             catch (Exception ex)
             {
@@ -94,5 +77,31 @@ public class NarratorApi
                 throw;
             }
         });
+    }
+    internal DynValue BuildDynValueFromMessagesAndResponse(List<Message> messages, MessageResponse response)
+    {
+        var table = new Table(_ParentMod.script);
+        var messagesTable = new Table(_ParentMod.script);
+        // Add original messages to the table
+        for (int i = 0; i < messages.Count; i++)
+        {
+            var msgTable = new Table(_ParentMod.script);
+            msgTable["role"] = messages[i].Role == RoleType.User ? "user" : "assistant";
+            msgTable["content"] = messages[i].ToString();
+            messagesTable[i + 1] = DynValue.NewTable(msgTable);
+        }
+        
+        // Add the new response message to the table
+        var responseTable = new Table(_ParentMod.script);
+        responseTable["role"] = "assistant";
+        responseTable["content"] = response.Message.ToString();
+        messagesTable[messages.Count + 1] = DynValue.NewTable(responseTable);
+        
+        table["messages"] = DynValue.NewTable(messagesTable);
+
+        // Add the raw response content as a separate field
+        table["content"] = response.Message.ToString();
+
+        return DynValue.NewTable(table);
     }
 }
