@@ -44,36 +44,12 @@ print("Response from Anthropic: " .. response.content)
 
 ## Untitled Global Memory System
 Adds a global memory standard between mods.
-### uservar
-Use the uservars for variable use.
-
-There are uservars that are created when prompting.
-
-#### Input
+### uservars
+Use the uservars for variable use. There are uservars that are created when prompting.
+`uservars.<variable name>` moniker instead.
+#### usage
 ```lua
-local response = narrator:think(liam:prompt({
-    {"username","William"},
-    {"precursor","user just woke up"},
-    {"music_style","fantasy"},
-    {"voice","adventerous"}
-}))
-
-print("Response from Anthropic: " .. response.content)
+uservars.test = "new var created"
+uservars.test = "another new var" 
+-- Pause script, prompt script if it wants to overright data. Data: "new var created". Run the script again when ready.
 ```
-
-#### BAD Output
-```lua
-jukebox:play_music(jukebox:music_search("fantasy"))
-chirp:say(chirp:voice_search("adventerous"),"In thy peril, the adventurer Sir William of Dervinia awoke. Long for the day ahead of him.")
-```
-
-#### GOOD Output
-```lua
-jukebox:play_music(jukebox:music_search(uservar.music_style))
-chirp:say(chirp:voice_search(uservar.voice),"In thy peril, the adventurer Sir William of Dervinia awoke. Long for the day ahead of him.")
-```
-
-They could be ignored by the LLM as they know the Value and could create their own variables or ignore doing any of that completely.
-
-Best practice would be for the LLM to just use the `uservars.<variable name>` moniqure instead.
-## Mod Directory

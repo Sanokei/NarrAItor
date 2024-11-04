@@ -3,14 +3,10 @@ public interface INarratorMod
 {   
     public string LuaFileData {get; set;}
     
+    // Should I enfource this or just expect them to use t
+    // // yeah ill make them optional.
     public void OnEnable(INarratorBot ParentBot);
-
     public void OnDisable(INarratorBot ParentBot);
-    
-    public delegate void NarratorModDelegate(INarratorBot sender);
-    // Let's other mods know that a new mod has been added to the bot
-    public static NarratorModDelegate OnAddedEvent;
-    public static NarratorModDelegate OnRemovedEvent;
 
     // I hate that it has come to this.
     // Constructors are build implementation, not behaviour, so I can't enforce it's signature. 

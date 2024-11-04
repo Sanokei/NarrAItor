@@ -4,16 +4,68 @@ using NarrAItor.Narrator.NarratorExceptions;
 using NarrAItor.Narrator.Modding;
 using NarrAItor.Narrator.Modding.Base;
 using MoonSharp.Interpreter;
+using MoonSharp.Interpreter.Loaders;
+using MoonSharp.Interpreter.Interop;
+using System.Threading.Tasks;
 
 namespace NarrAItor.Narrator;
 public class NarratorBot : INarratorBot
 {
-    // Narrator Bot Defaults
-    const string DEFAULT_DOCUMENTATION_PATH = "./Narrators/DefaultNarrator/docs/";
-    const string DEFAULT_DOCUMENTATION = "";
+    private void InitializeScript()
+    {
+        UserData.RegisterType<NarratorApi>();   
+        // FIXME: set path.
+        // ((ScriptLoaderBase)script.Options.ScriptLoader).ModulePaths = ScriptLoaderBase.UnpackStringPaths(System.IO.Path.Combine("/modules/","?") + ".lua");
+        
+        script.Options.DebugPrint = (x) => {Console.WriteLine(x);};
+        script.Options.DebugInput = (x) => { return Console.ReadLine(); };
+        
+        ((ScriptLoaderBase)script.Options.ScriptLoader).IgnoreLuaPathGlobal = true;
+        
+        Script.GlobalOptions.CustomConverters.SetClrToScriptCustomConversion<TaskDescriptor>((script, task) =>
+        {
+            // Important !!!
+            return DynValue.NewYieldReq(new[]
+            {
+                DynValue.FromObject(script, new AnonWrapper<TaskDescriptor>(task))
+            });
+        });
 
-    // Interface :sob:
-    Script _script;
+        
+        script.Globals["AsAssistantMessage"] = (Func<string, DynValue>)(content =>
+        {
+            var table = new Table(script);
+            table["role"] = "assistant";
+            table["content"] = content;
+            return DynValue.NewTable(table);
+        });
+    }
+    private void InitializeUserVarsTable()
+    {
+        if (script.Globals.Get("uservars").Type == DataType.Nil)
+        {
+            script.Globals["uservars"] = new Table(script);
+        }
+    }
+
+    public void Initialize()
+    {
+        InitializeScript();
+        InitializeUserVarsTable();
+    }
+
+    public Task Run()
+    {
+        throw new NotImplementedException();
+    }
+
+    //
+    public NarratorBot()
+    {
+    }
+
+    // Interface
+    Script _script = new(); // FIXME: NarratorBot should hold better ownership of script.
     public Script script{get => _script; set => _script = value;}
     string _Name = "DefaultNarrator";
     public string Name { get => _Name; set => _Name = value;}
@@ -21,14 +73,17 @@ public class NarratorBot : INarratorBot
     string _Version = "0.0.0";
     public string Version { get => _Version; set => _Version = value; }
 
-    string _Objective = "You are a Narrator";
+    string _Objective = "Become the best narrator you can be.";
     public string Objective { get => _Objective; set => _Objective = value; }
 
-    string _Personality = "You act like the Narrator from every movie intro";
-    public string Personality { get => _Personality; set => _Personality = value; }
+    string _CurrentObjective = "";
+    public string CurrentObjective { get => _CurrentObjective; set => _CurrentObjective = value; }
 
-    string _DocumentationPath = DEFAULT_DOCUMENTATION_PATH;
-    public string DocumentationPath { get => _DocumentationPath; set => _DocumentationPath = value; }
+    string _UserObjective = "You create modules for Narrator Bots.";
+    public string UserObjective { get => _UserObjective; set => _UserObjective = value; }
+
+    string _Personality = "You act like a Narrator.";
+    public string Personality { get => _Personality; set => _Personality = value; }
 
     Dictionary<string, NarratorMod> _ModsDirectory = [];
     public Dictionary<string, NarratorMod> ModsDirectory { get;set; }
@@ -36,27 +91,10 @@ public class NarratorBot : INarratorBot
     Dictionary<string, NarratorMod> _InstalledMods = [];
     public Dictionary<string, NarratorMod> InstalledMods { get => _InstalledMods; set => _InstalledMods = value; }
 
-    int _MaxTokens = 500;
+    int _MaxTokens = 1500;
     public int MaxTokens { get => _MaxTokens; set => _MaxTokens = value; } // cant have anything lower than 1: value < 1 ? 5000 : value; fix?
-
-    // Gets the Documentation from the path
-    public string Documentation = "";
-    public string GetDocumentation(string path = DEFAULT_DOCUMENTATION_PATH, bool useCachedDocumentation = true)
-    {
-        string DirPath = Path.Combine(Directory.GetCurrentDirectory(), path.Equals(DEFAULT_DOCUMENTATION_PATH) ? path : DocumentationPath);
-        if(!Directory.Exists(DirPath))
-        {
-            Console.WriteLine(Warnings.DOCUMENTATION_PATH_DOES_NOT_EXIST);
-            return DEFAULT_DOCUMENTATION;
-        }    
-
-        if(!string.IsNullOrEmpty(Documentation) && useCachedDocumentation)
-            return Documentation;
-
-        Dictionary<string, string> DocFiles = [];
-        foreach (string fileName in Directory.GetFiles(DirPath, "*.md"))
-            DocFiles.Add(fileName,File.ReadAllText(fileName));
-        Documentation = JsonConvert.SerializeObject(DocFiles);
-        return Documentation;
-    }
+    int _CurrentTokenCount = 0;
+    public int CurrentTokenCount { get => _CurrentTokenCount; set => _CurrentTokenCount = value; }
+    int _ContextWindow = 20000;
+    public int ContextWindow { get => _ContextWindow; set => _ContextWindow = value; }
 }

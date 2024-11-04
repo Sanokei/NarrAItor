@@ -82,10 +82,9 @@ public class Program
                     }
                 }
             }
-
-            // Check mods folder for installed mods
-            
         }
+
+        
     }
 
     private static void SetEnvironmentFromConfig(string path)

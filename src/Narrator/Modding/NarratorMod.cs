@@ -18,21 +18,13 @@ namespace NarrAItor.Narrator.Modding;
 /// </summary>
 public class NarratorMod : INarratorMod
 {
-    public NarratorMod()
-    {
-        INarratorMod.OnAddedEvent += OnEnable;
-        INarratorMod.OnRemovedEvent += OnDisable;
-
-        INarratorMod.OnAddedEvent?.Invoke(ParentBot);
-    }
-    ~NarratorMod()
-    {
-        INarratorMod.OnRemovedEvent?.Invoke(ParentBot);
-
-        INarratorMod.OnAddedEvent -= OnEnable;
-        INarratorMod.OnRemovedEvent -= OnDisable;
-    }
-
+    // The delegate will be moved to the bot.
+    // // FIXME: ParentBot isn't set yet, so invoking OnAddedEvent(ParentBot) will just be with (empty object)
+    // public NarratorMod()
+    // {
+    //     INarratorMod.OnAddedEvent += OnEnable;
+    //     INarratorMod.OnRemovedEvent += OnDisable;
+    // }
     
     /*
         //WARNING: This MAY be the way to do it, im not really sure.
@@ -61,55 +53,15 @@ public class NarratorMod : INarratorMod
     }
     static Timer _UpdateTimer;
     static readonly object _LockObject = new object();
-   
-    private NarratorMod InitializeNarratorMod()
-    {
-        return new NarratorMod();
-    }
-    private void InitializeScript()
-    {
-        UserData.RegisterType<NarratorApi>();   
-        // FIXME: set path.
-        // ((ScriptLoaderBase)script.Options.ScriptLoader).ModulePaths = ScriptLoaderBase.UnpackStringPaths(System.IO.Path.Combine("/modules/","?") + ".lua");
-        
-        script.Options.DebugPrint = (x) => {Console.WriteLine(x);};
-        ((ScriptLoaderBase)script.Options.ScriptLoader).IgnoreLuaPathGlobal = true;
-        
-        Script.GlobalOptions.CustomConverters.SetClrToScriptCustomConversion<TaskDescriptor>((script, task) =>
-        {
-            // Important !!!
-            return DynValue.NewYieldReq(new[]
-            {
-                DynValue.FromObject(script, new AnonWrapper<TaskDescriptor>(task))
-            });
-        });
-        // FIXME: The "narrator" should be replaced by the modname
-        script.Globals["narrator"] = new NarratorApi(this);
-        
-        script.Globals["AsAssistantMessage"] = (Func<string, DynValue>)(content =>
-        {
-            var table = new Table(script);
-            table["role"] = "assistant";
-            table["content"] = content;
-            return DynValue.NewTable(table);
-        });
-    }
-    private void InitializeUserVarsTable()
-    {
-        if (script.Globals.Get("uservars").Type == DataType.Nil)
-        {
-            script.Globals["uservars"] = new Table(script);
-        }
-    }
+
     /// <summary>
     /// Runs when added to a Narrator Bot.
     /// </summary>
     ///
     public void Initialize()
     {
-        InitializeNarratorMod();
-        InitializeScript();
-        InitializeUserVarsTable();
+        script.Globals[this.GetType().Name] = new NarratorApi(this);
+        new NarratorMod();
     }
 
     void Update(object state)

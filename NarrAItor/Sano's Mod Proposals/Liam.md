@@ -1,7 +1,7 @@
-A prompt engineer. Uses multiple prompt engineering ideas [[PromptEngineering]].
+A prompt engineer. 
 ```
-@Modname liam
-@Version 0.0.1
+@ModName liam
+@ModVersion 0.0.1
 ```
 Prompt engineering ideas:
 - prompt creator

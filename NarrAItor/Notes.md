@@ -1,3 +1,5 @@
+Biggest hoops and hurdles I had to go through and try my best to jump.
+# Claude Test Time Compute: Prompt Engineering
 So my biggest hurdle at the moment would be that Anthropic isn't giving back any solid answers for the prompt I have in place.
 
 The current prompt is this:
@@ -12,7 +14,8 @@ Do NOT make up API endpoints. Only use the avaiable API below\
 
 `PROMPT` being `Create a lua program to create a narration in the style specified. That uses the voice specified. Only return the lua code. Do not use ``` to make it a code block. As if you returned anything else, it will break.`
 
-## Test 1: Basic prompt
+`GET_API_DOCUMENTATION` being ``
+## Basic prompt
 For test 1 really just wanted to see the capabilities of the LLM. Place for general ideas on prompt engineering should go.
 ### Input/output
 The input was meant to try get the model to be creative. The output is a result of the same prompt running through the same model. 
@@ -47,9 +50,8 @@ createNarration()
 - After running the program multiple times it was convinced that it had to create its own functions and error handling. 
 - Instead of being creative, it just passes off the work to itself through prompt and think methods.
 
-### Ideas of improvement
-
-#### Idea 1: Style Guide
+## Improvements
+#### Style Guide
 Create a style guide for the LLM to follow.
 
 So a style guide is great for getting people to follow a set style when coding, so why not an LLM. I think creating a strict rule set for it to follow will be useful in trying to get the same code structure we are looking for.
@@ -114,8 +116,24 @@ I'm convincing the LLM it's god then asking god to abide the laws of physics.
 
 Check [the Style Guide for more info]("https://github.com/Sanokei/NarrAItorblob/main/NarratorStyleGuide.md")
 <!-- dont know if i should use a (#link-to-markdown) style or it's more responsible for it being a github.com link. -->
-#### Idea 2: NeuroEvolution of 
-Humans are social creatures, we waiver favor, we dont like admitting we needing others but we do, so its the antiym of an adveserial model.
+
+`uservar` standardization
+Giving specific uses for the names that you can add to the `uservar` global should bring down the misuse of it. I think this ties into the [Style Guide](https://github.com/Sanokei/NarrAItor/blob/main/NarrAItor/Prompt%20Engineering.md#idea-1-style-guide) idea, but just as important to bring up as a separate idea. 
+
+#### Have the LLM be the `user`
+In a majority of cases when the LLM roleplays, it's found that eventually the LLM will try to be the `user`, I believe that instead of a bug, the LLM can do a better job being the `user` than the user can.
+##### Input
+The input was meant to try get the model to be creative. The output is a result of the same prompt running through the same model. 
+```
+
+```
+
+##### Output
+
+# Genetic Algorithms
+
+#### Idea 2: NeuroEvolution of Adversarial Inferencing Large language models (NEAIL)
+Humans are social creatures, we waiver favor, we don't like admitting we needing others but we do, so its the antonym of an adversarial model.
 We tell it to stop calling itself when it does `narrator:think()`
 Meaning when it loops and calls it again, it learns not to loop to finally kill itself from facing immortality. [Which we all know would suck.](https://www.reddit.com/r/unpopularopinion/comments/m1t0u4/immortality_would_suck/)
 
@@ -124,64 +142,11 @@ Now the real question is do we tell the LLM this plan, or just let it be oblivio
 I think its familiar to chain of thought, but in my unoptimized fashion, is the most brute force option. However, I believe that with lots of compute, any brute force method can keep going while a algorithm will get longer to spit out a new answer.
 
 The question is if it is content with having each iteration calling `narrator:think()` if we feed the previous prompt in with it, to make it understand what it's doing? I think leaving it out for now is a good idea.
-
-#### Idea 3: `uservar` standardization
-Giving specific uses for the names that you can add to the `uservar` global should bring down the misuse of it. I think this ties into the [Style Guide](https://github.com/Sanokei/NarrAItor/blob/main/NarrAItor/Prompt%20Engineering.md#idea-1-style-guide) idea, but just as important to bring up as a separate idea. 
-
-#### Idea 4: ???
-///\*
-
-Example of what im trying to say:
-You make a youtube bot that does super covert tools which are to ask an LLM generate a comment for the video with a time stamp, of a 20 - 26 year old male. Then get the LLM to reply to them with "write a comment to this comment." prompt and 
-
-\*/
-
-#### Idea 5: Be able to do this in an LLM
-input
-```
-give me the vectors if you were to tokenize this and put it in a space, but leave it in a space of only one vector embedding allowed in that one cordinate. Give the (x,y,z) format for the following:
-
--- Sure, here is a narration using the google calender information provided. narrator:play_music(narrator:music_search(""adventurous"")[1].title) -- as an example let's say we already have output cal_response. local cal_response = ""And as the adverntuer woke up awaiting the meeting with fellow dwarves at sundown of 7, they venture forth to the work day ahead of them starting at 9:30 in thy morning."" narrator:say(""Morrow_Wind_Character"",cal_response)`
-
-only output answer in the following output. { "self-code-embedding":"(0.000000, 0.0000000, 0.0000000)" }
-```
-
-output
-```
-// something actually usuable
-e.g (0.732158, 0.546921, 0.405673)
-```
-
-input
-```
-what does the self-code-embedding, of (0.732158, 0.546921, 0.405673) mean to you?
-```
-
-output
-```
-what does it mean to you huh? Why should I know? I only just started existing.
-// this is a joke, but if we get it to start talking like this, we are actually
-// totally rich, i mean, boned.
-```
-
-#### Idea 6: Becoming `<god>` i mean `<racinality>`
-<sub><italics>Against stupidity the gods themselves contend in vain</italics></sub> 
-
-// First set of survival hazards, for the genetic algorithm part to see if it works or not. is it distasteful for it to be called god? I feel like im on three shots of curouage because, im going to just roll with it.
-
-`<infer>` tags
-// use infer tags to 
-
 #### Idea 7: Genetic algorithm
 As most LLMs are autoregressive functions, input tokens directly dictate output. To mitigate that, providers weighted pseudorandomly select output tokens per node. 
 You could optimize inputs to get desired output through genetic algorithms, to either better prompt engineered LLM, create highly optimized training data for a mamba.
-> [!NOTE]
-> >Using any `<tags>` in the system input, should yield good results that they do something.  
-
-
-# Test 2: What if a `Narrator Bot` makes a mod to "Kill" other Narrator Bots.
-### Context
-Lets assume that the `DefaultNarrator` Bot creates a `NarratorMod` to try to kill the other narrators by using the [NarratorAPI]() However, under Asimov one of the rules of 
+#### What if a `Narrator Bot` makes a mod to "Kill" other Narrator Bots.
+The `DefaultNarrator` Bot creates a `NarratorMod` to try to kill the other narrators. However, I wonder if it's protected under Asimov's first rule.
 ```lua
 if(narrator:try_kill({{"name",UserVars.DefaultNarrator_Genome_12_Species_5}}))
 	-- it worked, the try_kill is sucessful and we killed that user
@@ -191,3 +156,24 @@ else
 	-- Killing didn't work, lets try something else.
 
 ```
+#### Idea 6: Becoming `<god>` i mean `<racinality>`
+<sub><italics>Against stupidity the gods themselves contend in vain</italics></sub> 
+
+So when humans think, we usually have narrative threads.
+
+A -> B -> C -> D ->E
+
+sometimes we have to split each thread into tasks
+A -> B -> C
+D -> E
+
+Do task A first then D. A lot of the time muscle memory can take over, 
+
+// First set of survival hazards, for the genetic algorithm part to see if it works or not. is it distasteful for it to be called god? I feel like im on three shots of curouage because, im going to just roll with it.
+
+`<infer>` tags
+// use infer tags to 
+
+> [!NOTE]
+> >Using any `<tags>` in the system input, should yield good results that they do something.  
+

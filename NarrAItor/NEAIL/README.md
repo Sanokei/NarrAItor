@@ -1,4 +1,4 @@
-# NeuroEvolution of Adversarial Infrencing Large language models (NEAIL)
+# NeuroEvolution of Adversarial Inferencing Large language models (NEAIL)
 *Used to go by 'Young NEAIL'*
 Using genetic algoritms to get a better self prompting bot.
 <!-- FIXME: add link to the narrator bot cs file -->

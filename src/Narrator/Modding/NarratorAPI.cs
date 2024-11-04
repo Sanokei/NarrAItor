@@ -16,59 +16,83 @@ namespace NarrAItor.Narrator.Modding;
 /// The base "NarratorMod" that allows for the NarratorMods to exist.
 /// Basically just a wrapper mod for Anthropic.SDK
 /// </summary>
-
 public class NarratorApi
 {
-    /// <summary>
-    /// Store info on who is the parent mod, but keep as protected as possible
-    /// </summary>
     internal NarratorMod _ParentMod;
 
-    // public NarratorBot Narrator;
-    // internal NarratorApi(NarratorMod parent, NarratorBot Narrator)
-    // {
-    //     this.Narrator = Narrator;
-    //     this._ParentMod = parent;
-    // }
     internal NarratorApi(NarratorMod parent)
     {
         this._ParentMod = parent;
     }
 
-    // public async Task<DynValue> think(DynValue MessagesTable)
-    // {
-    //     var messages = NarratorMod.BuildMessagesListFromTable(MessagesTable);
-    //     var response = await LLM.Anthropic.Ask(messages);
-    //     return DynValue.NewString(response);
-    // }
-    public TaskDescriptor think(DynValue Message)
+    // Wrapper
+    public TaskDescriptor think(DynValue input)
     {
-        switch (Message.Type)
+        switch (input.Type)
         {
             case DataType.String:
-                return think(Message.String);
+                return think(input.String);
             case DataType.Table:
-                return think(Message.Table);
+                return think(input.Table);
             default:
-                throw new ArgumentException($"Unsupported input type for think: {Message.Type}");
+                throw new ArgumentException($"Unsupported input type for think: {input.Type}");
         }
     }
+    public TaskDescriptor think(DynValue input1, DynValue input2)
+    {
+        // FIXME
+        return think(input1, input2);
+    }
+
+    //
     internal TaskDescriptor think(string Message)
     {
         var table = new Table(_ParentMod.script);
-        table[1] = DynValue.NewString(Message);
-
-        return think(DynValue.NewTable(table));
+        table["messages"] = DynValue.NewTable(new Table(_ParentMod.script) { [1] = DynValue.NewString(Message) });
+        return think(table);
     }
-    internal TaskDescriptor think(Table MessagesTable)
+    internal TaskDescriptor think(Table Messages)
     {
-        
-        var messages = NarratorMod.BuildMessagesListFromTable(MessagesTable);
+        return think(Messages, null);
+    }
+    internal TaskDescriptor think(Table Messages, Table configTable)
+    {
+        var messages = new List<Message>();
+        var args = new Dictionary<string, object>();
+
+        if (configTable.Get("messages") != DynValue.Nil)
+        {
+            messages = NarratorMod.BuildMessagesListFromTable(configTable.Get("messages").Table);
+        }
+
+        // Parse configuration options
+        if (configTable.Get("max_tokens") != DynValue.Nil)
+            args["MaxTokens"] = (int)configTable.Get("max_tokens").Number;
+
+        if (configTable.Get("stream") != DynValue.Nil)
+            args["Stream"] = configTable.Get("stream").Boolean;
+
+        if (configTable.Get("temperature") != DynValue.Nil)
+            args["Temperature"] = (decimal)configTable.Get("temperature").Number;
+
+        if (configTable.Get("system") != DynValue.Nil)
+        {
+            var systemMessages = new List<SystemMessage>();
+            if(configTable.Get("system").Type == DataType.Table)
+                foreach (var pair in configTable.Get("system").Table.Pairs)
+                {
+                    systemMessages.Add(new SystemMessage(pair.Value.String));
+                }
+            else if(configTable.Get("system").Type == DataType.String)
+                systemMessages.Add(new SystemMessage(configTable.Get("system").String ));
+            args["System"] = systemMessages;
+        }
+
         return TaskDescriptor.Build(async () =>
         {
             try
             {
-                var response = await LLM.Anthropic.Ask(messages, _ParentMod.ParentBot.MaxTokens); // slow way of getting maxtokens
+                var response = await LLM.Anthropic.Ask(messages, args);
                 return BuildDynValueFromMessagesAndResponse(messages, response);
             }
             catch (Exception ex)
@@ -78,6 +102,7 @@ public class NarratorApi
             }
         });
     }
+
     internal DynValue BuildDynValueFromMessagesAndResponse(List<Message> messages, MessageResponse response)
     {
         var table = new Table(_ParentMod.script);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using NarrAItor.Narrator.Modding;
+using NarrAItor.Narrator.Modding.Base;
 
 namespace NarrAItor.Narrator.NEAIL;
 
@@ -44,8 +45,7 @@ public class NarratorBotFactory
         string name,
         string version,
         string objective,
-        string personality,
-        string documentationPath,
+        string personality = "",
         Dictionary<string, NarratorMod> installedMods = null)
     {
         var bot = new NarratorBot
@@ -54,7 +54,6 @@ public class NarratorBotFactory
             Version = version,
             Objective = objective,
             Personality = personality,
-            DocumentationPath = documentationPath
         };
 
         if (installedMods != null)
@@ -62,31 +61,17 @@ public class NarratorBotFactory
             bot.InstalledMods = installedMods;
         }
 
-        // Load documentation
-        bot.GetDocumentation(documentationPath, false);
-
         return bot;
     }
 
-    public static NarratorBot CreateNarratorBotFromConfig(NarratorBotConfig config)
+    public static NarratorBot CreateNarratorBotFromConfig(INarratorBot config)
     {
         return CreateCustomNarratorBot(
             config.Name,
             config.Version,
             config.Objective,
             config.Personality,
-            config.DocumentationPath,
             config.InstalledMods
         );
     }
-}
-
-public class NarratorBotConfig
-{
-    public string Name { get; set; }
-    public string Version { get; set; }
-    public string Objective { get; set; }
-    public string Personality { get; set; }
-    public string DocumentationPath { get; set; }
-    public Dictionary<string, NarratorMod> InstalledMods { get; set; }
 }
