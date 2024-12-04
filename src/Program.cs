@@ -87,12 +87,12 @@ public class Program
         
     }
 
-    private static void SetEnvironmentFromConfig(string path)
-    {
-        IConfigurationBuilder builder = new ConfigurationBuilder().AddJsonFile(path, false, true);
-        IConfigurationRoot root = builder.Build();
-        throw new NotImplementedException();
-    }
+    // private static void SetEnvironmentFromConfig(string path)
+    // {
+    //     IConfigurationBuilder builder = new ConfigurationBuilder().AddJsonFile(path, false, true);
+    //     IConfigurationRoot root = builder.Build();
+    //     throw new NotImplementedException();
+    // }
 
     private static void SetEnvironmentFromSecret()
     {

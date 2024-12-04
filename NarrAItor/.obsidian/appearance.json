@@ -1,6 +1,8 @@
 {
-  "cssTheme": "",
-  "accentColor": "",
   "theme": "moonstone",
-  "baseFontSize": 16
+  "accentColor": "#faadff",
+  "cssTheme": "AnuPpuccin",
+  "enabledCssSnippets": [
+    "extended-colorschemes"
+  ]
 }

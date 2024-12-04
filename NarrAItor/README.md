@@ -65,6 +65,9 @@ $ dotnet user-secrets init
 rem Set Anthropic API key
 $ dotnet user-secrets set "Anthropic__BearerToken" "x-api-key"
 
+rem Set ElevenLabs API key
+$ dotnet user-secrets set "ElevenLabs__APIKey" "x-api-key"
+
 rem Run the script
 $ dotnet run
 ```
