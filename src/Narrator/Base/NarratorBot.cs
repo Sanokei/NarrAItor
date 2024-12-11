@@ -13,7 +13,7 @@ public class NarratorBot : INarratorBot
 {
     public static void InitializeScript(Script script)
     {
-        
+
         // UserData.RegisterType<NarratorApi>();   
         // FIXME: set path.
         // ((ScriptLoaderBase)script.Options.ScriptLoader).ModulePaths = ScriptLoaderBase.UnpackStringPaths(System.IO.Path.Combine("/modules/","?") + ".lua");
@@ -52,33 +52,61 @@ public class NarratorBot : INarratorBot
     public void Initialize(out Script m_script)
     {
         // script goes through some global and local changes before it leaves
-        // so this function could be useful
-        m_script = script;
+        // so this function could be useful, but dangerous.
         Initialize();
+        m_script = script;
     }
     public void Initialize()
     {
         InitializeScript(script);
         InitializeUserVarsTable(script);
     }
-
+    
     public Task Run()
     {
         throw new NotImplementedException();
     }
 
-    //
-    public NarratorBot()
-    {
+    /// <summary>
+    /// Initializes a new instance of the NarratorBot class.
+    /// </summary>
+    /// <param name="Name">The name of the narrator bot.</param>
+    /// <param name="Version">The version of the narrator bot.</param>
+    /// <param name="Objective">The objective of the narrator bot.</param>
+    /// <param name="CurrentObjective">The current objective of the narrator bot.</param>
+    /// <param name="UserObjective">The user's objective for the narrator bot.</param>
+    /// <param name="Personality">The personality of the narrator bot.</param>
+    /// <param name="script">The script used by the narrator bot.</param>
+    /// <param name="InstalledMods">The installed mods for the narrator bot.</param>
+    /// <param name="ModsDirectory">The directory of mods for the narrator bot.</param>
+    public NarratorBot(
+        string Name = "DefaultNarrator",
+        string Version = "0.0.0",
+        string Objective = "Become the best narrator you can be.",
+        string CurrentObjective = "",
+        string UserObjective = "You create modules for Narrator Bots.",
+        string Personality = "You act like a Narrator.",
+        Script script = null,
+        Dictionary<string, NarratorMod> InstalledMods = null,
+        Dictionary<string, NarratorMod> ModsDirectory = null
+    )
+        {
+        this.Name = Name;
+        this.Version = Version;
+        this.Objective = Objective;
+        this.CurrentObjective = CurrentObjective;
+        this.UserObjective = UserObjective;
+        this.Personality = Personality;
 
-    }
-    public NarratorBot(Script script)
-    {
-        this.script = script;
+        this.script = script ?? this.script;
+        this.InstalledMods = InstalledMods ?? this.InstalledMods;
+        this.ModsDirectory = ModsDirectory ?? this.InstalledMods;;
+        
+        Initialize();
     }
 
     // Interface
-    Script _script = new(); // FIXME: NarratorBot should hold better ownership of script.
+    Script _script = new(); // FIXME: NarratorBot should hold better ownership of it's script.
     public Script script{get => _script; set => _script = value;}
     string _Name = "DefaultNarrator";
     public string Name { get => _Name; set => _Name = value;}

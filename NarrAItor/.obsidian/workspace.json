@@ -15,9 +15,9 @@
               "state": {
                 "file": "Video/Outline.canvas",
                 "viewState": {
-                  "x": 6897.814483882537,
-                  "y": -321.8290820799109,
-                  "zoom": -0.07738158135289265
+                  "x": 2218.1816891641397,
+                  "y": -330.51409472855494,
+                  "zoom": -1.6848146621999691
                 }
               },
               "icon": "lucide-layout-dashboard",
@@ -96,7 +96,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Cones of Dunshire. Research.md",
+                "file": "Video/Outline.canvas",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -106,7 +106,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Cones of Dunshire. Research"
+              "title": "Backlinks for Outline"
             }
           },
           {
