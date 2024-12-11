@@ -1,15 +1,20 @@
 using System;
+using System.Reflection;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
+using System.Reflection.Metadata;
 
+// FIXME: Anthropic bye bye :>
 using Anthropic.SDK;
 using Anthropic.SDK.Messaging;
+
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.CoreLib.IO;
 using MoonSharp.Interpreter.Loaders;
 using MoonSharp.Interpreter.Interop;
 
 using NarrAItor.Narrator;
-using System.Reflection.Metadata;
 using NarrAItor.Narrator.Modding.Base;
 
 namespace NarrAItor.Narrator.Modding;
@@ -60,7 +65,29 @@ public class NarratorMod : INarratorMod
     ///
     public void Initialize()
     {
-        script.Globals[this.GetType().Name] = new NarratorApi(this);
+        // https://gamedev.stackexchange.com/a/203963
+        // Get global methods (must be public) and add them to the script.Globals
+        MethodInfo[] globalMethods = typeof(NarratorApi).GetMethods(BindingFlags.Public | BindingFlags.Static);
+
+        foreach (var method in globalMethods)
+        {
+            // Get name, parameters and return type so we can build a delegate
+            string name = method.Name;
+            Type[] parameters = method.GetParameters().Select(p => p.ParameterType).ToArray();
+            Type returnType = method.ReturnType;
+
+            // Build a delegate and add to globals with the name of the method, use the correct delegate type based on the return type
+            if(returnType == typeof(void))
+            {
+                Delegate del = Delegate.CreateDelegate(Expression.GetActionType(parameters), method);
+                script.Globals[name] = del;
+            }
+            else
+            {
+                Delegate del = Delegate.CreateDelegate(Expression.GetFuncType(parameters.Concat(new Type[] { returnType }).ToArray()), method);
+                script.Globals[name] = del;
+            }
+        }
         new NarratorMod();
     }
 

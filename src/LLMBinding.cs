@@ -8,10 +8,9 @@ using MoonSharp.Interpreter;
 
 using NarrAItor.Configuration;
 
+namespace NarrAItor;
 
-namespace NarrAItor.LLM;
-
-public static class Anthropic
+public static class LLM
 {
     public static async Task<MessageResponse> Ask(List<Message> Messages, Dictionary<string,object> args)
     {

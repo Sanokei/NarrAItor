@@ -11,9 +11,10 @@ using System.Threading.Tasks;
 namespace NarrAItor.Narrator;
 public class NarratorBot : INarratorBot
 {
-    private void InitializeScript()
+    public static void InitializeScript(Script script)
     {
-        UserData.RegisterType<NarratorApi>();   
+        
+        // UserData.RegisterType<NarratorApi>();   
         // FIXME: set path.
         // ((ScriptLoaderBase)script.Options.ScriptLoader).ModulePaths = ScriptLoaderBase.UnpackStringPaths(System.IO.Path.Combine("/modules/","?") + ".lua");
         
@@ -40,7 +41,7 @@ public class NarratorBot : INarratorBot
             return DynValue.NewTable(table);
         });
     }
-    private void InitializeUserVarsTable()
+    public static void InitializeUserVarsTable(Script script)
     {
         if (script.Globals.Get("uservars").Type == DataType.Nil)
         {
@@ -48,10 +49,17 @@ public class NarratorBot : INarratorBot
         }
     }
 
+    public void Initialize(out Script m_script)
+    {
+        // script goes through some global and local changes before it leaves
+        // so this function could be useful
+        m_script = script;
+        Initialize();
+    }
     public void Initialize()
     {
-        InitializeScript();
-        InitializeUserVarsTable();
+        InitializeScript(script);
+        InitializeUserVarsTable(script);
     }
 
     public Task Run()
@@ -62,6 +70,11 @@ public class NarratorBot : INarratorBot
     //
     public NarratorBot()
     {
+
+    }
+    public NarratorBot(Script script)
+    {
+        this.script = script;
     }
 
     // Interface

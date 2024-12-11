@@ -138,8 +138,13 @@ public static class Commands
             ";
             try
             {
+                NarrAItor.Narrator.NarratorBot NarratorBot = new();
                 // NarrAItor.Narrator.Modding.NarratorMod test = new("", testing);
+
+                NarratorBot.Initialize(out MoonSharp.Interpreter.Script script);
                 // test.Initialize();
+
+                // await NarratorBot.Run(script);
                 // await test.Run();
             }
             catch (Exception ex)

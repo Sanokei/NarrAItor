@@ -13,3 +13,4 @@ appsettings.Development.json
 secrets.json
 NarrAItor/Video.md
 NarrAItor/Video/*
+/NarrAItor/.obsidian/plugins/nostr-writer

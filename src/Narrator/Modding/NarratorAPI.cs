@@ -16,46 +16,39 @@ namespace NarrAItor.Narrator.Modding;
 /// The base "NarratorMod" that allows for the NarratorMods to exist.
 /// Basically just a wrapper mod for Anthropic.SDK
 /// </summary>
-public class NarratorApi
+public static class NarratorApi
 {
-    internal NarratorMod _ParentMod;
-
-    internal NarratorApi(NarratorMod parent)
-    {
-        this._ParentMod = parent;
-    }
-
     // Wrapper
-    public TaskDescriptor think(DynValue input)
+    public static TaskDescriptor think(this NarratorMod _ParentMod, DynValue input)
     {
         switch (input.Type)
         {
             case DataType.String:
-                return think(input.String);
+                return think(_ParentMod, input.String);
             case DataType.Table:
-                return think(input.Table);
+                return think(_ParentMod, input.Table);
             default:
                 throw new ArgumentException($"Unsupported input type for think: {input.Type}");
         }
     }
-    public TaskDescriptor think(DynValue input1, DynValue input2)
+    public static TaskDescriptor think(DynValue input1, DynValue input2)
     {
         // FIXME
         return think(input1, input2);
     }
 
     //
-    internal TaskDescriptor think(string Message)
+    internal static TaskDescriptor think(this NarratorMod _ParentMod, string Message)
     {
         var table = new Table(_ParentMod.script);
         table["messages"] = DynValue.NewTable(new Table(_ParentMod.script) { [1] = DynValue.NewString(Message) });
-        return think(table);
+        return think(_ParentMod, table);
     }
-    internal TaskDescriptor think(Table Messages)
+    internal static TaskDescriptor think(this NarratorMod _ParentMod, Table Messages)
     {
-        return think(Messages, null);
+        return think(_ParentMod, Messages, null);
     }
-    internal TaskDescriptor think(Table Messages, Table configTable)
+    internal static TaskDescriptor think(this NarratorMod _ParentMod, Table Messages, Table configTable)
     {
         var messages = new List<Message>();
         var args = new Dictionary<string, object>();
@@ -92,8 +85,8 @@ public class NarratorApi
         {
             try
             {
-                var response = await LLM.Anthropic.Ask(messages, args);
-                return BuildDynValueFromMessagesAndResponse(messages, response);
+                var response = await LLM.Ask(messages, args);
+                return _ParentMod.BuildDynValueFromMessagesAndResponse(messages, response);
             }
             catch (Exception ex)
             {
@@ -103,7 +96,7 @@ public class NarratorApi
         });
     }
 
-    internal DynValue BuildDynValueFromMessagesAndResponse(List<Message> messages, MessageResponse response)
+    internal static DynValue BuildDynValueFromMessagesAndResponse(this NarratorMod _ParentMod, List<Message> messages, MessageResponse response)
     {
         var table = new Table(_ParentMod.script);
         var messagesTable = new Table(_ParentMod.script);
