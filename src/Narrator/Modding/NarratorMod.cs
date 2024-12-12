@@ -30,7 +30,20 @@ public class NarratorMod : INarratorMod
     //     INarratorMod.OnAddedEvent += OnEnable;
     //     INarratorMod.OnRemovedEvent += OnDisable;
     // }
+    public NarratorMod(string name, string luaFileData, Script mainScript,
+                          Dictionary<string, NarratorMod> requiredMods) // Renamed parameter
+        {
+            Name = name;
+            LuaFileData = luaFileData;
+            script = mainScript; 
+            RequiredMods = requiredMods; // Assign the required mods dictionary
+            Initialize();
+        }
     
+    private Dictionary<string, NarratorMod> _RequiredMods = new Dictionary<string, NarratorMod>(); // Initialize!
+    public Dictionary<string, NarratorMod> RequiredMods { get => _RequiredMods; set => _RequiredMods = value; }
+    public string Name{ get;set; }
+
     /*
         //WARNING: This MAY be the way to do it, im not really sure.
 
@@ -38,7 +51,7 @@ public class NarratorMod : INarratorMod
         It may be more optimal to have every mod have their own script so during NEAIL stage, it could run in parrallel.
         As the Google C++ style guide says, always bend to optimization.
     */
-    public Script script; // = new();
+    public Script script{ get;set; } // = new();
     
     public ScriptFunctionDelegate onAwake, onStart, onUpdate;
     string _LuaFileData = "";
@@ -88,7 +101,6 @@ public class NarratorMod : INarratorMod
                 script.Globals[name] = del;
             }
         }
-        new NarratorMod();
     }
 
     void Update(object state)
@@ -142,5 +154,42 @@ public class NarratorMod : INarratorMod
             }
         }
         return messages;
+    }
+
+    public static DynValue BuildDynValueFromMessagesAndResponse(List<Message> messages, Anthropic.SDK.Messaging.MessageResponse response)
+    {
+        // Create a new MoonSharp table to represent the conversation
+        Table conversationTable = new Table(null);
+
+        // Add original messages to the table
+        for (int i = 0; i < messages.Count; i++)
+        {
+            Table messageTable = new Table(null);
+            
+            // Set role based on message type
+            messageTable["role"] = messages[i].Role == RoleType.User ? "user" : "assistant";
+            messageTable["content"] = messages[i].Content;
+            
+            // Use 1-based indexing for Lua compatibility
+            conversationTable[i + 1] = messageTable;
+        }
+
+        // Add the response as the final message in the table
+        Table responseTable = new Table(null);
+        responseTable["role"] = "assistant";
+        responseTable["content"] = response.Content;
+
+       
+        responseTable["usage"] = new Table(null)
+        {
+            ["input_tokens"] = response.Usage.InputTokens,
+            ["output_tokens"] = response.Usage.OutputTokens,
+        };
+
+        // Add the response to the conversation table
+        conversationTable[messages.Count + 1] = responseTable;
+
+        // Convert the table to a DynValue
+        return DynValue.NewTable(conversationTable);
     }
 }

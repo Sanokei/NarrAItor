@@ -3,6 +3,7 @@ using System.Threading;
 
 using Anthropic.SDK;
 using Anthropic.SDK.Messaging;
+using Anthropic.SDK.Common;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.CoreLib.IO;
 using MoonSharp.Interpreter.Loaders;
@@ -18,36 +19,8 @@ namespace NarrAItor.Narrator.Modding;
 /// </summary>
 public static class NarratorApi
 {
-    // Wrapper
-    public static TaskDescriptor think(this NarratorMod _ParentMod, DynValue input)
-    {
-        switch (input.Type)
-        {
-            case DataType.String:
-                return think(_ParentMod, input.String);
-            case DataType.Table:
-                return think(_ParentMod, input.Table);
-            default:
-                throw new ArgumentException($"Unsupported input type for think: {input.Type}");
-        }
-    }
-    public static TaskDescriptor think(DynValue input1, DynValue input2)
-    {
-        // FIXME
-        return think(input1, input2);
-    }
+    // Existing methods remain the same...
 
-    //
-    internal static TaskDescriptor think(this NarratorMod _ParentMod, string Message)
-    {
-        var table = new Table(_ParentMod.script);
-        table["messages"] = DynValue.NewTable(new Table(_ParentMod.script) { [1] = DynValue.NewString(Message) });
-        return think(_ParentMod, table);
-    }
-    internal static TaskDescriptor think(this NarratorMod _ParentMod, Table Messages)
-    {
-        return think(_ParentMod, Messages, null);
-    }
     internal static TaskDescriptor think(this NarratorMod _ParentMod, Table Messages, Table configTable)
     {
         var messages = new List<Message>();
@@ -81,12 +54,45 @@ public static class NarratorApi
             args["System"] = systemMessages;
         }
 
+        // New: Tool Support
+        if (configTable.Get("tools") != DynValue.Nil)
+        {
+            var toolsTable = configTable.Get("tools").Table;
+            var tools = new List<Anthropic.SDK.Common.Tool>();
+
+            foreach (var pair in toolsTable.Pairs)
+            {
+                if (pair.Value.Type == DataType.Function)
+                {
+                    // Create a tool from a Lua function
+                    var tool = CreateToolFromLuaFunction(_ParentMod, pair.Value, pair.Key.String);
+                    tools.Add(tool);
+                }
+            }
+
+            args["Tools"] = tools;
+        }
+
+        // New: Tool Choice Support
+        if (configTable.Get("tool_choice") != DynValue.Nil)
+        {
+            var toolChoiceTable = configTable.Get("tool_choice").Table;
+            var toolChoice = new ToolChoice
+            {
+                Type = toolChoiceTable.Get("type").String == "tool" 
+                    ? ToolChoiceType.Tool 
+                    : ToolChoiceType.Auto,
+                Name = toolChoiceTable.Get("name")?.String
+            };
+            args["ToolChoice"] = toolChoice;
+        }
+
         return TaskDescriptor.Build(async () =>
         {
             try
             {
                 var response = await LLM.Ask(messages, args);
-                return _ParentMod.BuildDynValueFromMessagesAndResponse(messages, response);
+                return NarratorMod.BuildDynValueFromMessagesAndResponse(messages, response);
             }
             catch (Exception ex)
             {
@@ -96,30 +102,22 @@ public static class NarratorApi
         });
     }
 
-    internal static DynValue BuildDynValueFromMessagesAndResponse(this NarratorMod _ParentMod, List<Message> messages, MessageResponse response)
+    // Helper method to create a tool from a Lua function
+    private static Anthropic.SDK.Common.Tool CreateToolFromLuaFunction(NarratorMod mod, DynValue luaFunction, string name)
     {
-        var table = new Table(_ParentMod.script);
-        var messagesTable = new Table(_ParentMod.script);
-        // Add original messages to the table
-        for (int i = 0; i < messages.Count; i++)
+        // Create a C# function that can be called from the tool
+        Func<string, string> wrappedFunction = (input) =>
         {
-            var msgTable = new Table(_ParentMod.script);
-            msgTable["role"] = messages[i].Role == RoleType.User ? "user" : "assistant";
-            msgTable["content"] = messages[i].ToString();
-            messagesTable[i + 1] = DynValue.NewTable(msgTable);
-        }
-        
-        // Add the new response message to the table
-        var responseTable = new Table(_ParentMod.script);
-        responseTable["role"] = "assistant";
-        responseTable["content"] = response.Message.ToString();
-        messagesTable[messages.Count + 1] = DynValue.NewTable(responseTable);
-        
-        table["messages"] = DynValue.NewTable(messagesTable);
+            // Call the Lua function
+            var result = mod.script.Call(luaFunction, DynValue.NewString(input));
+            return result.String;
+        };
 
-        // Add the raw response content as a separate field
-        table["content"] = response.Message.ToString();
-
-        return DynValue.NewTable(table);
+        // Create a tool from the wrapped function
+        return LLM.CreateToolFromFunc(
+            name, 
+            $"Tool created from Lua function: {name}", 
+            wrappedFunction
+        );
     }
 }

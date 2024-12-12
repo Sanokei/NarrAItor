@@ -132,14 +132,25 @@ public static class Commands
 
         UnitTests.Add("promptanthropic", async () =>
         {
-            string testing = @"
-            local response = narrator:think(narrator:prompt(""in the stlye of the skylord of the sea, drawf of stone."",""voice like Gordon from HL1""))
-            print(""Response from Anthropic: "" .. response.content)
-            ";
+            // string testing = @"
+            // local response = narrator:think(narrator:prompt(""in the stlye of the skylord of the sea, drawf of stone."",""voice like Gordon from HL1""))
+            // print(""Response from Anthropic: "" .. response.content)
+            // ";
             try
             {
                 // Create the Bot
-                NarrAItor.Narrator.NarratorBot NarratorBot = new();
+                NarrAItor.Narrator.NarratorBot NarratorBot = new(
+                    "DefaultNarrator",
+                    "0.0.0",
+                    0,
+                    "Become the best narrator you can be.",
+                    "",
+                    "You create modules for Narrator Bots.",
+                    "You act like a Narrator.",
+                    null,
+                    null,
+                    null
+                );
                 // NarrAItor.Narrator.Modding.NarratorMod test = new("", testing);
                 
                 await NarratorBot.Run();
@@ -155,6 +166,69 @@ public static class Commands
         UnitTests.Add("secret", () => {
             Console.WriteLine("\nEnviormental Variable Secret. `Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY);`");
             Console.WriteLine($"\nx-api-key: { (String.IsNullOrEmpty(Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY)) ? "Not Set" : Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY))}\n");
+        });
+
+        UnitTests.Add("narrator", async () => {
+            Console.WriteLine("\nCreating Stanley Parable-inspired Narrator Bot\n");
+
+            // Lua script for the narrator
+            string narratorScript = @"
+            function Awake()
+                print('The narrator system is initializing...')
+            end
+
+            function Start()
+                print('The story begins...')
+            end
+
+            function Update()
+                -- Periodic narrative comments
+                if math.random() < 0.1 then
+                    local comments = {
+                        'Stanley wondered why he was here.',
+                        'The room was quiet, too quiet.',
+                        'Stanley knew something was different today.',
+                        'But Stanley was not so sure...'
+                    }
+                    print(comments[math.random(#comments)])
+                end
+            end
+            ";
+
+            // Create the Narrator Bot
+            NarrAItor.Narrator.NarratorBot StanleyNarratorBot = new(
+                Name: "StanleyNarratorBot",
+                Version: "1.0.0",
+                MaxTotalToken: 100000,
+                Objective: "Narrate the story of Stanley with wit and philosophical undertones",
+                UserObjective: "Guide the listener through an existential narrative",
+                Personality: "Omniscient, slightly sardonic, meta-aware narrator",
+                CurrentObjective: "Begin the story of Stanley"
+            );
+
+            // Create a mod for the narrator
+            NarrAItor.Narrator.Modding.NarratorMod narratorMod = new()
+            {
+                LuaFileData = narratorScript
+            };
+
+            // Add the mod to the bot's installed mods
+            StanleyNarratorBot.RequiredMods["StanleyNarrativeMod"] = narratorMod;
+
+            // Initialize the mod
+            narratorMod.Initialize();
+
+            // Run the mod
+            await narratorMod.Run();
+
+            // Print out bot details
+            Console.WriteLine("\nNarrator Bot Details:");
+            Console.WriteLine($"Name: {StanleyNarratorBot.Name}");
+            Console.WriteLine($"Version: {StanleyNarratorBot.Version}");
+            Console.WriteLine($"Objective: {StanleyNarratorBot.Objective}");
+            Console.WriteLine($"Personality: {StanleyNarratorBot.Personality}");
+            Console.WriteLine($"Max Total Tokens: {StanleyNarratorBot.MaxTotalTokens}");
+            Console.WriteLine($"Installed Mods: {StanleyNarratorBot.RequiredMods.Count}");
         });
 
         if (args.Length == 0)
@@ -175,6 +249,7 @@ public static class Commands
             }
         }
     }
+    
     private static async Task InvokeTestAsync(Delegate test)
     {
         if (test is Func<Task> asyncTest)

@@ -1,7 +1,12 @@
 namespace NarrAItor.Narrator.Modding.Base;
+using MoonSharp.Interpreter;
 public interface INarratorMod
-{   
+{  
+    public string Name { get; set; }
     public string LuaFileData {get; set;}
+    public Script script { get; set; }
+    public Dictionary<string, NarratorMod> RequiredMods { get; set; } 
+
     
     // Should I enfource this or just expect them to use t
     // // yeah ill make them optional.

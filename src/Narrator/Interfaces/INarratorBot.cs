@@ -1,3 +1,4 @@
+using System.Dynamic;
 using MoonSharp.Interpreter;
 
 namespace NarrAItor.Narrator.Modding.Base;
@@ -34,16 +35,11 @@ public interface INarratorBot
     public Script script{get;set;}
     
     // Token Lengths
-    public int MaxTokens {get;set;}
-    public int CurrentTokenCount {get;set;}
-    public int ContextWindow {get;set;}
-
 
     public Dictionary<string, NarratorMod> ModsDirectory{get;set;}
-    public Dictionary<string, NarratorMod> InstalledMods{get;set;}
-    
-    // Functions
+    public Dictionary<string, NarratorMod> RequiredMods{get;set;}
 
+    public int MaxTotalTokens { get; set; } // Default max total tokens
 
     // Delegates
     public delegate void NarratorModDelegate(INarratorBot sender);

@@ -58,7 +58,7 @@ public class NarratorBotFactory
 
         if (installedMods != null)
         {
-            bot.InstalledMods = installedMods;
+            bot.RequiredMods = installedMods;
         }
 
         return bot;
@@ -71,7 +71,7 @@ public class NarratorBotFactory
             config.Version,
             config.Objective,
             config.Personality,
-            config.InstalledMods
+            config.RequiredMods
         );
     }
 }
