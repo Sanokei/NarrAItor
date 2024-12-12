@@ -168,69 +168,66 @@ public static class Commands
             Console.WriteLine($"\nx-api-key: { (String.IsNullOrEmpty(Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY)) ? "Not Set" : Environment.GetEnvironmentVariable(Config.Names.Secrets.ANTHROPIC_API_KEY))}\n");
         });
 
-        UnitTests.Add("narrator", async () => {
-            Console.WriteLine("\nCreating Stanley Parable-inspired Narrator Bot\n");
+        UnitTests.Add("narratorbot_mod_generation", async () =>
+    {
+        Console.WriteLine("\nTesting NarrAItor.Narrator.NarratorBot Mod Generation");
 
-            // Lua script for the narrator
-            string narratorScript = @"
-            function Awake()
-                print('The narrator system is initializing...')
-            end
+        try
+        {
+            // Create a NarrAItor.Narrator.NarratorBot instance
+            NarrAItor.Narrator.NarratorBot narratorBot = new NarrAItor.Narrator.NarratorBot("TestNarrator", "1.0.0", 10000);
 
-            function Start()
-                print('The story begins...')
-            end
+            // Test mod generation with valid input
+            string modName = "TestMod";
+            string modDescription = "A simple test mod to demonstrate basic functionality.";
 
-            function Update()
-                -- Periodic narrative comments
-                if math.random() < 0.1 then
-                    local comments = {
-                        'Stanley wondered why he was here.',
-                        'The room was quiet, too quiet.',
-                        'Stanley knew something was different today.',
-                        'But Stanley was not so sure...'
-                    }
-                    print(comments[math.random(#comments)])
-                end
-            end
-            ";
+            string csFilePath = await narratorBot.GenerateModProposal(modName, modDescription);
 
-            // Create the Narrator Bot
-            NarrAItor.Narrator.NarratorBot StanleyNarratorBot = new(
-                Name: "StanleyNarratorBot",
-                Version: "1.0.0",
-                MaxTotalToken: 100000,
-                Objective: "Narrate the story of Stanley with wit and philosophical undertones",
-                UserObjective: "Guide the listener through an existential narrative",
-                Personality: "Omniscient, slightly sardonic, meta-aware narrator",
-                CurrentObjective: "Begin the story of Stanley"
-            );
-
-            // Create a mod for the narrator
-            NarrAItor.Narrator.Modding.NarratorMod narratorMod = new()
+            if (File.Exists(csFilePath))
             {
-                LuaFileData = narratorScript
-            };
+                Console.WriteLine($"Generated CS file: {csFilePath}");
 
-            // Add the mod to the bot's installed mods
-            StanleyNarratorBot.RequiredMods["StanleyNarrativeMod"] = narratorMod;
+                // Optionally read and inspect the file content
+                string csFileContent = File.ReadAllText(csFilePath);
+                Console.WriteLine($"CS File Content (First 100 chars):\n{csFileContent.Substring(0, Math.Min(100, csFileContent.Length))}\n...");
 
-            // Initialize the mod
-            narratorMod.Initialize();
+                // // Clean up: Delete generated files
+                // File.Delete(csFilePath);
+                // File.Delete(Path.Combine(AppContext.BaseDirectory, "Mods", $"{modName.Replace(" ", "_")}.lua"));
+                // Console.WriteLine("Generated files deleted.");
+            }
+            else
+            {
+                Console.WriteLine($"Error: CS file '{csFilePath}' was not generated.");
+            }
 
-            // Run the mod
-            await narratorMod.Run();
+            // Test mod generation with invalid input (empty mod name)
+            try
+            {
+                await narratorBot.GenerateModProposal("", modDescription);
+                Console.WriteLine("Error: Expected ArgumentException for empty mod name was not thrown.");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Caught expected ArgumentException (Empty Mod Name): {ex.Message}");
+            }
 
-            // Print out bot details
-            Console.WriteLine("\nNarrator Bot Details:");
-            Console.WriteLine($"Name: {StanleyNarratorBot.Name}");
-            Console.WriteLine($"Version: {StanleyNarratorBot.Version}");
-            Console.WriteLine($"Objective: {StanleyNarratorBot.Objective}");
-            Console.WriteLine($"Personality: {StanleyNarratorBot.Personality}");
-            Console.WriteLine($"Max Total Tokens: {StanleyNarratorBot.MaxTotalTokens}");
-            Console.WriteLine($"Installed Mods: {StanleyNarratorBot.RequiredMods.Count}");
-        });
-
+            // Test mod generation with invalid input (empty mod description)
+            try
+            {
+                await narratorBot.GenerateModProposal(modName, "");
+                Console.WriteLine("Error: Expected ArgumentException for empty mod description was not thrown.");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Caught expected ArgumentException (Empty Mod Description): {ex.Message}");
+            }
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine($"A top level error has occured: {e}");
+        }
+    });
         if (args.Length == 0)
         {
             foreach (var test in UnitTests.Values)
