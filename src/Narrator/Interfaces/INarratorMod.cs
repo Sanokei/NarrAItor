@@ -1,17 +1,10 @@
 namespace NarrAItor.Narrator.Modding.Base;
 using MoonSharp.Interpreter;
 public interface INarratorMod
-{  
-    public string Name { get; set; }
+{
     public string LuaFileData {get; set;}
     public Script script { get; set; }
     public Dictionary<string, NarratorMod> RequiredMods { get; set; } 
-
-    
-    // Should I enfource this or just expect them to use t
-    // // yeah ill make them optional.
-    public void OnEnable(INarratorBot ParentBot);
-    public void OnDisable(INarratorBot ParentBot);
 
     // I hate that it has come to this.
     // Constructors are build implementation, not behaviour, so I can't enforce it's signature. 
@@ -21,5 +14,4 @@ public interface INarratorMod
     // However we still need a way to actually
     public void Initialize();
     public Task Run();
-    public INarratorBot ParentBot{get;set;}
 }

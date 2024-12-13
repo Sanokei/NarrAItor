@@ -6,7 +6,6 @@ A prompt engineer.
 Prompt engineering ideas:
 - prompt creator
 - style guide
-// TODO: be able to enable and disabled
 ## Methods
 The only method Liam needs is will power.
 ### string __prompt(Table kwargs)__

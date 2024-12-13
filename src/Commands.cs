@@ -169,65 +169,65 @@ public static class Commands
         });
 
         UnitTests.Add("narratorbot_mod_generation", async () =>
-    {
-        Console.WriteLine("\nTesting NarrAItor.Narrator.NarratorBot Mod Generation");
-
-        try
         {
-            // Create a NarrAItor.Narrator.NarratorBot instance
-            NarrAItor.Narrator.NarratorBot narratorBot = new NarrAItor.Narrator.NarratorBot("TestNarrator", "1.0.0", 10000);
+            Console.WriteLine("\nTesting NarrAItor.Narrator.NarratorBot Mod Generation");
 
-            // Test mod generation with valid input
-            string modName = "TestMod";
-            string modDescription = "A simple test mod to demonstrate basic functionality.";
-
-            string csFilePath = await narratorBot.GenerateModProposal(modName, modDescription);
-
-            if (File.Exists(csFilePath))
-            {
-                Console.WriteLine($"Generated CS file: {csFilePath}");
-
-                // Optionally read and inspect the file content
-                string csFileContent = File.ReadAllText(csFilePath);
-                Console.WriteLine($"CS File Content (First 100 chars):\n{csFileContent.Substring(0, Math.Min(100, csFileContent.Length))}\n...");
-
-                // // Clean up: Delete generated files
-                // File.Delete(csFilePath);
-                // File.Delete(Path.Combine(AppContext.BaseDirectory, "Mods", $"{modName.Replace(" ", "_")}.lua"));
-                // Console.WriteLine("Generated files deleted.");
-            }
-            else
-            {
-                Console.WriteLine($"Error: CS file '{csFilePath}' was not generated.");
-            }
-
-            // Test mod generation with invalid input (empty mod name)
             try
             {
-                await narratorBot.GenerateModProposal("", modDescription);
-                Console.WriteLine("Error: Expected ArgumentException for empty mod name was not thrown.");
-            }
-            catch (ArgumentException ex)
-            {
-                Console.WriteLine($"Caught expected ArgumentException (Empty Mod Name): {ex.Message}");
-            }
+                // Create a NarrAItor.Narrator.NarratorBot instance
+                NarrAItor.Narrator.NarratorBot narratorBot = new NarrAItor.Narrator.NarratorBot("Stanley Parable", "1.0.0", 10000);
 
-            // Test mod generation with invalid input (empty mod description)
-            try
-            {
-                await narratorBot.GenerateModProposal(modName, "");
-                Console.WriteLine("Error: Expected ArgumentException for empty mod description was not thrown.");
+                // Test mod generation with valid input
+                string modName = "StanleyParableNarrator";
+                string modDescription = "Look out for specific places using GPS location, and give sarcastic takes about it";
+                string modProposal = await narratorBot.GenerateModProposal(modName, modDescription);
+                string csFilePath = await narratorBot.GenerateMod(modName, modDescription, modProposal);
+
+                if (File.Exists(csFilePath))
+                {
+                    Console.WriteLine($"Generated CS file: {csFilePath}");
+
+                    // Optionally read and inspect the file content
+                    string csFileContent = File.ReadAllText(csFilePath);
+                    Console.WriteLine($"CS File Content (First 100 chars):\n{csFileContent.Substring(0, Math.Min(100, csFileContent.Length))}\n...");
+
+                    // // Clean up: Delete generated files
+                    // File.Delete(csFilePath);
+                    // File.Delete(Path.Combine(AppContext.BaseDirectory, "Mods", $"{modName.Replace(" ", "_")}.lua"));
+                    // Console.WriteLine("Generated files deleted.");
+                }
+                else
+                {
+                    Console.WriteLine($"Error: CS file '{csFilePath}' was not generated.");
+                }
+
+                // Test mod generation with invalid input (empty mod name)
+                try
+                {
+                    await narratorBot.GenerateModProposal("", modDescription);
+                    Console.WriteLine("Error: Expected ArgumentException for empty mod name was not thrown.");
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine($"Caught expected ArgumentException (Empty Mod Name): {ex.Message}");
+                }
+
+                // Test mod generation with invalid input (empty mod description)
+                try
+                {
+                    await narratorBot.GenerateModProposal(modName, "");
+                    Console.WriteLine("Error: Expected ArgumentException for empty mod description was not thrown.");
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine($"Caught expected ArgumentException (Empty Mod Description): {ex.Message}");
+                }
             }
-            catch (ArgumentException ex)
+            catch(Exception e)
             {
-                Console.WriteLine($"Caught expected ArgumentException (Empty Mod Description): {ex.Message}");
+                Console.WriteLine($"A top level error has occured: {e}");
             }
-        }
-        catch(Exception e)
-        {
-            Console.WriteLine($"A top level error has occured: {e}");
-        }
-    });
+        });
         if (args.Length == 0)
         {
             foreach (var test in UnitTests.Values)

@@ -30,19 +30,18 @@ public class NarratorMod : INarratorMod
     //     INarratorMod.OnAddedEvent += OnEnable;
     //     INarratorMod.OnRemovedEvent += OnDisable;
     // }
-    public NarratorMod(string name, string luaFileData, Script mainScript,
-                          Dictionary<string, NarratorMod> requiredMods) // Renamed parameter
-        {
-            Name = name;
-            LuaFileData = luaFileData;
-            script = mainScript; 
-            RequiredMods = requiredMods; // Assign the required mods dictionary
-            Initialize();
-        }
-    
+    public NarratorMod(){}
+
+    public NarratorMod(string luaFileData, Script mainScript, Dictionary<string, NarratorMod> requiredMods)
+    {
+        LuaFileData = luaFileData;
+        script = mainScript;
+        RequiredMods = requiredMods;
+    }
     private Dictionary<string, NarratorMod> _RequiredMods = new Dictionary<string, NarratorMod>(); // Initialize!
     public Dictionary<string, NarratorMod> RequiredMods { get => _RequiredMods; set => _RequiredMods = value; }
-    public string Name{ get;set; }
+    // Not needed in INarratorMod because the name of the class will be the name
+    // public string Name{ get;set; }
 
     /*
         //WARNING: This MAY be the way to do it, im not really sure.
@@ -84,13 +83,11 @@ public class NarratorMod : INarratorMod
 
         foreach (var method in globalMethods)
         {
-            // Get name, parameters and return type so we can build a delegate
             string name = method.Name;
             Type[] parameters = method.GetParameters().Select(p => p.ParameterType).ToArray();
             Type returnType = method.ReturnType;
 
-            // Build a delegate and add to globals with the name of the method, use the correct delegate type based on the return type
-            if(returnType == typeof(void))
+            if (returnType == typeof(void))
             {
                 Delegate del = Delegate.CreateDelegate(Expression.GetActionType(parameters), method);
                 script.Globals[name] = del;

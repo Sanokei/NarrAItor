@@ -1,55 +1,85 @@
-The lua wrapper for C# Anthropic.SDK, and some other memory management tools. 
-## Anthropic.SDK Methods
-The C# package being wrapped
+# Narrator API Documentation
+
+The lua wrapper for C# Anthropic.SDK and memory management tools.
+
+## Core Methods
+
 ### Message **AsAssistantMessage(string Message)**
 Creates a new `Message` as assistant using the parameter message.
-#### parameters
-##### string __Message__
-The message to be marked as `Role.Assistant`
-### Message **AsSystemMessage(string Message)**
-Creates a new `Message` as system using the parameter message.
-#### parameters
-##### string __Message__
-The message to be marked as `Role.System`
+#### Parameters
+- **Message** (string): The message to be marked as `Role.Assistant`
 
-> [!NOTE] `narrator`
-> The narrator is the main component that can be used to call differing functions per mod. Named in the mod's header. It's best practice to explicitly call narrator mod methods using `:`.
-### async Table __think(dynamic Messages)__ 
+### Message **AsSystemMessage(string Message)** 
+Creates a new `Message` as system using the parameter message.
+#### Parameters
+- **Message** (string): The message to be marked as `Role.System`
+
+### async Table **think(dynamic Messages)**
 Prompts Anthropic with requests and returns a response.
-#### parameters
-##### dynamic Messages
-Can either be of type `string` or `DynValue.Table` depending on the number of messages in the request.
-#### return value
-##### Table __ResponseTable__
-The table that contains the LLM reponse information.
-###### string __ResponseTable.content__
-The response from Anthropic as a string value.
-###### Table __ResponseTable.messages__
-Contains all messages including the response, Messages and Response. 
-#### usage
-``` lua
+#### Parameters
+- **Messages** (dynamic): Can be either `string` or `DynValue.Table` depending on number of messages
+#### Returns
+- **ResponseTable** (Table): Contains response information
+  - **content** (string): The response from Anthropic
+  - **messages** (Table): Contains all messages including request and response
+#### Usage
+```lua
 -- String method
 local response = narrator:think(narrator:prompt(narrator:mods:weatherdotcom("get_local_weather","Dubai, UAE")))
 narrator.say(response.content)
 
--- Alternatively you can use the Table method
+-- Table method
 local response = narrator:think({
-                "What's the weather like today?",
-                AsAssistantMessage("Sure! Could you please provide me with your location?"),
-                "Dubai, UAE"
-            })
-        
+    "What's the weather like today?",
+    AsAssistantMessage("Sure! Could you please provide me with your location?"),
+    "Dubai, UAE"
+})
+
 print("Response from Anthropic: " .. response.content)
 ```
 
-## Untitled Global Memory System
-Adds a global memory standard between mods.
+## Global Memory System
+System for managing state between mods.
+
 ### uservars
-Use the uservars for variable use. There are uservars that are created when prompting.
-`uservars.<variable name>` moniker instead.
-#### usage
+Use uservars for variable storage. Variables are created when prompting.
+#### Usage
 ```lua
 uservars.test = "new var created"
 uservars.test = "another new var" 
--- Pause script, prompt script if it wants to overright data. Data: "new var created". Run the script again when ready.
+-- Pause script, prompt script if it wants to overwrite data. Data: "new var created". Run the script again when ready.
 ```
+
+## Narrator Component
+The narrator is the main component used to call different functions per mod. Named in the mod's header.
+Best practice is to explicitly call narrator mod methods using `:`.
+
+### chirp
+Audio output methods.
+```lua
+chirp:say(voice, text) -- Output text-to-speech
+chirp:voice_search(query) -- Search for voice profile
+```
+
+### jukebox  
+Music/audio playback methods.
+```lua
+jukebox:play_music(track) -- Play music track
+jukebox:music_search(query) -- Search for music
+```
+
+## Events/Hooks
+- **Awake**: Called when mod is first loaded
+- **Start**: Called before first frame 
+- **Update**: Called every frame (16ms)
+
+Use these sparingly and only when needed for continuous operations.
+
+## Best Practices
+1. Use uservars for all state management
+2. Make direct API calls without wrappers
+3. Avoid creating functions
+4. Trust the API for error handling
+5. Keep code minimal and focused
+6. Use narrator: prefix for clarity
+7. Leverage existing components instead of creating new ones

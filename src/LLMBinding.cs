@@ -109,6 +109,32 @@ public static class LLM
         }
     }
 
+    public static async Task<MessageResponse> GeneratePrompt(Dictionary<string, string> userArgs, int maxTokens, string apiDocumentation)
+    {
+        string prompt = $@"
+            Using the following user variables: {string.Join(", ", userArgs.Select(kv => $"{kv.Key}: {kv.Value}"))}
+            The response must be within {maxTokens} tokens.
+            Do NOT make up API endpoints. Only use the available API below.
+            {apiDocumentation}
+
+            Based on the above information, generate a concise and effective prompt that an LLM can use to perform a task. The prompt should be clear, specific, and actionable.
+        ";
+
+        var messages = new List<Message> { new Message(RoleType.User, prompt) };
+        var args = new Dictionary<string, object>(); // No special arguments needed for prompt generation
+
+        try
+        {
+            var response = await Ask(messages, args);
+            return response; // Return the generated prompt
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error generating prompt: {ex.Message}");
+            return null;
+        }
+    }
+
     // Helper method to create tools from functions easily with explicit type specification
     public static Anthropic.SDK.Common.Tool CreateToolFromFunc<TResult>(string name, string description, Func<TResult> func)
     {
@@ -123,6 +149,16 @@ public static class LLM
 
     // Overload for functions with two parameters
     public static Anthropic.SDK.Common.Tool CreateToolFromFunc<T1, T2, TResult>(string name, string description, Func<T1, T2, TResult> func)
+    {
+        return Anthropic.SDK.Common.Tool.FromFunc(name, func, description);
+    }
+    // Overload for functions with three parameters
+    public static Anthropic.SDK.Common.Tool CreateToolFromFunc<T1, T2, T3, TResult>(string name, string description, Func<T1, T2, T3, TResult> func)
+    {
+        return Anthropic.SDK.Common.Tool.FromFunc(name, func, description);
+    }
+    // Overload for functions with three parameters
+    public static Anthropic.SDK.Common.Tool CreateToolFromFunc<T1, T2, T3, T4, TResult>(string name, string description, Func<T1, T2, T3, T4, TResult> func)
     {
         return Anthropic.SDK.Common.Tool.FromFunc(name, func, description);
     }
