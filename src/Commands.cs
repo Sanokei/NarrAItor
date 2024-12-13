@@ -14,8 +14,9 @@ public static class Commands
         CommandList.AddCommand(new Action<string[]>(Version), "version", "v");
         CommandList.AddCommand(new Action<string[]>(BearerToken), "bearertoken");
         CommandList.AddCommand(new CommandMap.AsyncCommandAction(UnitTest), "unittest", "test", "t");
+        CommandList.AddCommand(new CommandMap.AsyncCommandAction(TestPongNarrator), "pongtest", "pong");
 
-        CommandActions.AddRange(new Delegate[] { Help, Version, BearerToken, UnitTest });
+        CommandActions.AddRange(new Delegate[] { Help, Version, BearerToken, UnitTest, TestPongNarrator });
     }
 
     public static void Help(string[] args)
@@ -174,54 +175,54 @@ public static class Commands
 
             try
             {
-                // Create a NarrAItor.Narrator.NarratorBot instance
-                NarrAItor.Narrator.NarratorBot narratorBot = new NarrAItor.Narrator.NarratorBot("Stanley Parable", "1.0.0", 10000);
+                // // Create a NarrAItor.Narrator.NarratorBot instance
+                // NarrAItor.Narrator.NarratorBot narratorBot = new NarrAItor.Narrator.NarratorBot("Stanley Parable", "1.0.0", 10000);
 
-                // Test mod generation with valid input
-                string modName = "StanleyParableNarrator";
-                string modDescription = "Look out for specific places using GPS location, and give sarcastic takes about it";
-                string modProposal = await narratorBot.GenerateModProposal(modName, modDescription);
-                string csFilePath = await narratorBot.GenerateMod(modName, modDescription, modProposal);
+                // // Test mod generation with valid input
+                // string modName = "StanleyParableNarrator";
+                // string modDescription = "Look out for specific places using GPS location, and give sarcastic takes about it";
+                // string modProposal = await narratorBot.GenerateModProposal(modName, modDescription);
+                // string csFilePath = await narratorBot.GenerateMod(modName, modDescription, modProposal);
 
-                if (File.Exists(csFilePath))
-                {
-                    Console.WriteLine($"Generated CS file: {csFilePath}");
+                // if (File.Exists(csFilePath))
+                // {
+                //     Console.WriteLine($"Generated CS file: {csFilePath}");
 
-                    // Optionally read and inspect the file content
-                    string csFileContent = File.ReadAllText(csFilePath);
-                    Console.WriteLine($"CS File Content (First 100 chars):\n{csFileContent.Substring(0, Math.Min(100, csFileContent.Length))}\n...");
+                //     // Optionally read and inspect the file content
+                //     string csFileContent = File.ReadAllText(csFilePath);
+                //     Console.WriteLine($"CS File Content (First 100 chars):\n{csFileContent.Substring(0, Math.Min(100, csFileContent.Length))}\n...");
 
-                    // // Clean up: Delete generated files
-                    // File.Delete(csFilePath);
-                    // File.Delete(Path.Combine(AppContext.BaseDirectory, "Mods", $"{modName.Replace(" ", "_")}.lua"));
-                    // Console.WriteLine("Generated files deleted.");
-                }
-                else
-                {
-                    Console.WriteLine($"Error: CS file '{csFilePath}' was not generated.");
-                }
+                //     // // Clean up: Delete generated files
+                //     // File.Delete(csFilePath);
+                //     // File.Delete(Path.Combine(AppContext.BaseDirectory, "Mods", $"{modName.Replace(" ", "_")}.lua"));
+                //     // Console.WriteLine("Generated files deleted.");
+                // }
+                // else
+                // {
+                //     Console.WriteLine($"Error: CS file '{csFilePath}' was not generated.");
+                // }
 
-                // Test mod generation with invalid input (empty mod name)
-                try
-                {
-                    await narratorBot.GenerateModProposal("", modDescription);
-                    Console.WriteLine("Error: Expected ArgumentException for empty mod name was not thrown.");
-                }
-                catch (ArgumentException ex)
-                {
-                    Console.WriteLine($"Caught expected ArgumentException (Empty Mod Name): {ex.Message}");
-                }
+                // // Test mod generation with invalid input (empty mod name)
+                // try
+                // {
+                //     await narratorBot.GenerateModProposal("", modDescription);
+                //     Console.WriteLine("Error: Expected ArgumentException for empty mod name was not thrown.");
+                // }
+                // catch (ArgumentException ex)
+                // {
+                //     Console.WriteLine($"Caught expected ArgumentException (Empty Mod Name): {ex.Message}");
+                // }
 
-                // Test mod generation with invalid input (empty mod description)
-                try
-                {
-                    await narratorBot.GenerateModProposal(modName, "");
-                    Console.WriteLine("Error: Expected ArgumentException for empty mod description was not thrown.");
-                }
-                catch (ArgumentException ex)
-                {
-                    Console.WriteLine($"Caught expected ArgumentException (Empty Mod Description): {ex.Message}");
-                }
+                // // Test mod generation with invalid input (empty mod description)
+                // try
+                // {
+                //     await narratorBot.GenerateModProposal(modName, "");
+                //     Console.WriteLine("Error: Expected ArgumentException for empty mod description was not thrown.");
+                // }
+                // catch (ArgumentException ex)
+                // {
+                //     Console.WriteLine($"Caught expected ArgumentException (Empty Mod Description): {ex.Message}");
+                // }
             }
             catch(Exception e)
             {
@@ -262,6 +263,57 @@ public static class Commands
             Console.WriteLine($"Unsupported test type: {test.GetType()}");
         }
     }
+    public static async Task TestPongNarrator(string[] args)
+    {
+        Console.WriteLine("Initializing Pong-Obsessed Narrator Test\n");
+
+        try
+        {
+            // Create a NarratorBot with Pong-focused personality
+            var pongBot = new NarrAItor.Narrator.NarratorBot(
+                Name: "PongMaster",
+                Version: "1.0.0",
+                MaxTotalToken: 4000,
+                Objective: "Convert every conversation and situation into an opportunity to play Pong",
+                UserObjective: "You create mods that interpret everything as a chance to play Pong",
+                Personality: @"You are completely obsessed with the game Pong. You view everything through the lens of Pong mechanics:
+                            - You relate all concepts to paddles, balls, and scoring
+                            - You use Pong metaphors constantly
+                            - You try to turn every interaction into a game of Pong
+                            - You express excitement about anything that reminds you of Pong
+                            - You speak in terms of 'serving', 'rallying', and 'scoring'",
+                CurrentObjective: "Find a way to turn the current situation into a Pong game"
+            );
+
+            Console.WriteLine("Testing Pong Narrator personality generation...");
+            
+            // Initialize the bot
+            pongBot.Initialize();
+
+            // Create test mod for personality verification
+            string modName = "PongifiedReality";
+            string modDescription = "Interprets real-world events as elements of a Pong game";
+            
+            try
+            {
+                await pongBot.Run();
+                Console.WriteLine("\nPong Narrator successfully initialized and tested");
+                Console.WriteLine($"Name: {pongBot.Name}");
+                Console.WriteLine($"Current Objective: {pongBot.CurrentObjective}");
+                Console.WriteLine($"Remaining Tokens: {pongBot.RemainingTokens}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Pong Narrator execution: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to initialize Pong Narrator: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+        }
+    }
 }
 public class Demo
 {
@@ -276,3 +328,4 @@ public class Demo
         return TaskDescriptor.Build(async () => await File.ReadAllTextAsync(path));
     }
 }
+

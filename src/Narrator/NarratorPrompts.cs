@@ -178,4 +178,15 @@ public static class NarratorBot
     - Integration patterns
     - Resource utilization
     ";
+
+    public const string ModDocumentationPrompt = @"
+    You are an expert Lua code documentarian.
+    Given the following Lua code for a Narrator mod, generate clear and concise documentation for it.
+    Include:
+    - A brief description of the mod's purpose.
+    - Explanations of any functions, their parameters, and return values.
+    - Examples of how to use the mod.
+
+    Code:
+    ";
 }

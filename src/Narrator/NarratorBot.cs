@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
@@ -22,38 +23,9 @@ namespace NarrAItor.Narrator;
 
 public class NarratorBot : INarratorBot
 {
-    private readonly string styleGuidePath = Path.Join(Directory.GetCurrentDirectory(), "NarrAItor", "NarratorStyleGuide.md");
-    private readonly string apiDocPath = Path.Join(Directory.GetCurrentDirectory(), "NarrAItor", "NarratorAPI.md");
-    private readonly string readMePath = Path.Join(Directory.GetCurrentDirectory(), "NarrAItor", "README.md");
-
-    public async Task Run()
-    {
-        // Read style guide and API documentation
-        string styleGuide = File.ReadAllText(styleGuidePath);
-        string apiDoc = File.ReadAllText(apiDocPath);
-        string readme = File.ReadAllText(readMePath);
-        
-        // Add initial message defining who we are
-        workspace.Add(new Message(RoleType.User, $"{Name} {Version}: {Personality}"));
-
-        workspace.Add(new Message(RoleType.User, $@"{readme}\n{styleGuide}\n{apiDoc}"));
-
-        // Process user objective to set current objective
-        workspace.Add(new Message(RoleType.User, UserObjective));
-        var response = await LLM.Ask(workspace, args);
-        
-        // Update current objective and overall objective based on response
-        CurrentObjective = response.Content.FirstOrDefault()?.ToString();
-        Objective = $"Process user request: {UserObjective}";
-        
-        // Add response to workspace for context
-        workspace.Add(new Message(RoleType.Assistant, response.Content.FirstOrDefault()?.ToString()));
-        
-        // Update token tracking
-        UpdateTokens(response.Usage.InputTokens, response.Usage.OutputTokens);
-    }
-
     private readonly ModGeneration _modGeneration;
+    private const int MAX_WORKSPACE_MESSAGES = 10;
+    private const int OBJECTIVE_CHECK_INTERVAL = 5;
 
     public NarratorBot(
         string Name = "DefaultNarrator",
@@ -84,6 +56,76 @@ public class NarratorBot : INarratorBot
         _modGeneration = new ModGeneration(this);
     }
 
+    private Dictionary<string, Anthropic.SDK.Common.Tool> _tools = new();
+    public List<Anthropic.SDK.Common.Tool> availableTools = new();
+    private void InitializeToolset()
+    {
+        _tools = new Dictionary<string, Anthropic.SDK.Common.Tool>
+        {
+            {
+                "analyze_objective",
+                LLM.CreateToolFromFunc<string, Task<string>>(
+                    "analyze_objective",
+                    "Analyzes the current objective and breaks it down into actionable steps",
+                    async (objective) =>
+                    {
+                        var args = new Dictionary<string, string> {
+                            { "objective", objective },
+                            { "personality", Personality },
+                            { "context", "objective analysis" }
+                        };
+                        return (await LLM.GeneratePrompt(args, MaxTotalTokens, ""))?.Content?.FirstOrDefault()?.ToString() ?? "";
+                    })
+            },
+            {
+                "create_mod",
+                LLM.CreateToolFromFunc<string, string, Task<string>>(
+                    "create_mod",
+                    "Creates a new mod with specified name and description",
+                    async (name, description) =>
+                    {
+                        try
+                        {
+                            var result = await _modGeneration.CreateMod(name, description);
+                            return $"Successfully created mod: {result}";
+                        }
+                        catch (Exception ex)
+                        {
+                            return $"Failed to create mod: {ex.Message}";
+                        }
+                    })
+            },
+            {
+                "execute_mod",
+                LLM.CreateToolFromFunc<string, Task<string>>(
+                    "execute_mod",
+                    "Executes a specified mod",
+                    async (modName) =>
+                    {
+                        if (!RequiredMods.TryGetValue(modName, out var mod))
+                        {
+                            return $"Mod not found: {modName}";
+                        }
+                        await mod.Run();
+                        return $"Executed mod: {modName}";
+                    })
+            },
+            {
+                "verify_objective_completion",
+                LLM.CreateToolFromFunc<string, Task<bool>>(
+                    "verify_objective_completion",
+                    "Checks if the current objective has been completed",
+                    async (objective) =>
+                    {
+                        var messages = workspace.TakeLast(MAX_WORKSPACE_MESSAGES).ToList();
+                        messages.Add(new Message(RoleType.User, $"Has this objective been completed: {objective}?"));
+                        var response = await LLM.Ask(messages, args);
+                        return response.Content?.FirstOrDefault()?.ToString()?.Contains("completed", StringComparison.OrdinalIgnoreCase) ?? false;
+                    })
+            }
+        };
+        availableTools = _tools.Values.ToList();
+    }
     public static void InitializeScript(Script script)
     {
         script.Options.DebugPrint = (x) => { Console.WriteLine(x); };
@@ -99,6 +141,7 @@ public class NarratorBot : INarratorBot
             });
         });
 
+
         script.Globals["AsAssistantMessage"] = (Func<string, DynValue>)(content =>
         {
             var table = new Table(script);
@@ -107,7 +150,6 @@ public class NarratorBot : INarratorBot
             return DynValue.NewTable(table);
         });
     }
-
     public static void InitializeUserVarsTable(Script script)
     {
         if (script.Globals.Get("uservars").Type == DataType.Nil)
@@ -116,151 +158,203 @@ public class NarratorBot : INarratorBot
         }
     }
 
-    public void Initialize(out Script m_script)
-    {
-        Initialize();
-        m_script = script;
-    }
-
     public void Initialize()
     {
         InitializeScript(script);
         InitializeUserVarsTable(script);
-        InitializedArgs();
+        InitializeToolset();
     }
 
-    /// <summary>
-    /// Handles tool initialization and configuration for the NarratorBot
-    /// </summary>
-    public void InitializedArgs()
+    public async Task Run()
     {
-        // Initialize base configuration
-        args = new Dictionary<string, object>
+        try
         {
-            { "MaxTokens", 4000 },
-            { "Temperature", 0.7m }
+            await ProcessObjective();
+        }
+        catch (Exception ex)
+        {
+            workspace.Add(new Message(RoleType.User, $"Error during execution: {ex.Message}"));
+            throw;
+        }
+    }
+
+    private async Task ProcessObjective()
+    {
+        if (string.IsNullOrEmpty(CurrentObjective))
+        {
+            CurrentObjective = Objective;
+        }
+
+        var objectiveAnalysis = await InvokeTool<string>("analyze_objective", CurrentObjective);
+        workspace.Add(new Message(RoleType.User, $"Objective Analysis: {objectiveAnalysis}"));
+
+        int messageCount = 0;
+        bool objectiveCompleted = false;
+
+        while (!objectiveCompleted && RemainingTokens > 0)
+        {
+            try
+            {
+                var messages = new List<Message>(workspace.TakeLast(MAX_WORKSPACE_MESSAGES))
+                {
+                    new Message(RoleType.User, "What action should be taken next to achieve the objective?")
+                };
+
+                var response = await LLM.Ask(messages, args);
+                UpdateTokenUsage(response);
+
+                var action = response.Content?.FirstOrDefault()?.ToString();
+
+                if (!string.IsNullOrEmpty(action))
+                {
+                    workspace.Add(new Message(RoleType.User, $"Planned action: {action}"));
+                    await ExecuteAction(action);
+                }
+
+                messageCount++;
+                if (messageCount % OBJECTIVE_CHECK_INTERVAL == 0)
+                {
+                    objectiveCompleted = await InvokeTool<bool>("verify_objective_completion", CurrentObjective);
+                }
+
+                ManageWorkspaceSize();
+            }
+            catch (Exception ex)
+            {
+                workspace.Add(new Message(RoleType.User, $"Error during action execution: {ex.Message}"));
+                throw;
+            }
+        }
+    }
+
+    private async Task ExecuteAction(string action)
+    {
+        if (action.Contains("create mod", StringComparison.OrdinalIgnoreCase))
+        {
+            var match = Regex.Match(action, @"create mod ['""]([^'""]+)['""] with description ['""]([^'""]+)['""]");
+            if (match.Success)
+            {
+                await InvokeTool<string>("create_mod", match.Groups[1].Value, match.Groups[2].Value);
+            }
+        }
+        else if (action.Contains("execute mod", StringComparison.OrdinalIgnoreCase))
+        {
+            var match = Regex.Match(action, @"execute mod ['""]([^'""]+)['""]");
+            if (match.Success)
+            {
+                await InvokeTool<string>("execute_mod", match.Groups[1].Value);
+            }
+        }
+    }
+
+    private async Task<T> InvokeTool<T>(string toolName, params object[] parameters)
+    {
+        if (!_tools.TryGetValue(toolName, out var tool))
+        {
+            throw new ArgumentException($"Tool '{toolName}' not found.", nameof(toolName));
+        }
+
+        var args = new Dictionary<string, object>
+        {
+            { "MaxTokens", 2048 },
+            { "Temperature", 0.7m },
+            { "Tools", new List<Anthropic.SDK.Common.Tool> { tool } }
         };
 
-        // Define available tools collection
-        args["Tools"] = new List<Anthropic.SDK.Common.Tool>
+        var toolMessage = new Message(RoleType.User, $"Invoking tool: {tool.Function.Name}");
+        workspace.Add(toolMessage);
+
+        List<Message> messagesToSend = workspace.ToList();
+
+        var response = await LLM.Ask(messagesToSend, args);
+
+        workspace.Add(new Message(RoleType.Assistant, response.Content.FirstOrDefault()?.ToString()));
+
+        try
         {
-            // Core LLM interaction tool
-            LLM.CreateToolFromFunc<List<Message>, Dictionary<string, object>, Task<MessageResponse>>(
-                "think",
-                "Enables direct LLM interaction for cognitive processing",
-                LLM.Ask
-            ),
-
-            // Mod creation tool
-            LLM.CreateToolFromFunc<string, string, Task<string>>(
-                "create_mod",
-                "Creates a new mod with specified name and description",
-                async (name, description) =>
+            // Handle cases where the response is a list of content
+            if(response.Content != null && response.Content.Count > 0)
+            {
+                if (typeof(T) == typeof(string))
                 {
-                    try
-                    {
-                        var result = await _modGeneration.CreateMod(name,description);
-                        return $"Successfully created mod: {result}";
-                    }
-                    catch (Exception ex)
-                    {
-                        return $"Failed to create mod: {ex.Message}";
-                    }
+                    return (T)(object)string.Join("",response.Content.Select(x => x.ToString()));
                 }
-            ),
-
-            // Mod execution tool
-            LLM.CreateToolFromFunc<string, Task<string>>(
-                "run_mod",
-                "Executes a specified mod by name",
-                async (modName) =>
+                else if (typeof(T) == typeof(bool))
                 {
-                    try
-                    {
-                        // Verify mod exists
-                        if (!RequiredMods.TryGetValue(modName, out var mod))
-                        {
-                            return $"Mod not found: {modName}";
-                        }
-
-                        // Initialize if needed
-                        if (mod.script == null)
-                        {
-                            mod.Initialize();
-                        }
-
-                        // Execute the mod
-                        await mod.Run();
-                        return $"Successfully executed mod: {modName}";
-                    }
-                    catch (Exception ex)
-                    {
-                        return $"Failed to execute mod: {ex.Message}";
-                    }
+                    return (T)(object)(response.Content.Any(x => x.ToString().Contains("completed", StringComparison.OrdinalIgnoreCase)));
                 }
-            )
-        };
+            }
+            return (T)Convert.ChangeType(response.Content?.FirstOrDefault()?.ToString() ?? "", typeof(T));
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Could not convert tool response to type {typeof(T).Name}. Response Content: {JsonConvert.SerializeObject(response.Content)}", ex);
+        }
     }
-
-    /// <summary>
-    /// Retrieves a list of currently loaded mods
-    /// </summary>
-    /// <returns>String containing mod names and their status</returns>
-    private string GetLoadedMods()
+    
+    private void ManageWorkspaceSize()
     {
-        var modList = RequiredMods.Select(kvp => 
-            $"- {kvp.Key}: {(kvp.Value.script != null ? "Initialized" : "Not Initialized")}"
-        );
-        return string.Join("\n", modList);
+        if (workspace.Count > MAX_WORKSPACE_MESSAGES * 2)
+        {
+            workspace = workspace.Skip(workspace.Count - MAX_WORKSPACE_MESSAGES).ToList();
+        }
     }
 
-    /// <summary>
-    /// Validates if a mod name is acceptable for creation
-    /// </summary>
-    /// <param name="modName">The proposed name for the mod</param>
-    /// <returns>True if the name is valid, false otherwise</returns>
-    private bool IsValidModName(string modName)
+    private void UpdateTokenUsage(MessageResponse response)
     {
-        if (string.IsNullOrWhiteSpace(modName)) return false;
-        
-        // Check if mod already exists
-        if (RequiredMods.ContainsKey(modName)) return false;
-        
-        // Validate name format (alphanumeric with underscores)
-        return Regex.IsMatch(modName, @"^[a-zA-Z0-9_]+$");
+        if (response?.Usage != null)
+        {
+            _currentUsage += new TokenUsage(response);
+        }
     }
 
-    // Properties
+    // Properties and fields
     public Script script { get; set; } = new();
-    public string Name { get; set; } = "DefaultNarrator";
-    public string Version { get; set; } = "0.0.0";
-    public string Objective { get; set; } = "Become the best narrator you can be.";
-    public string CurrentObjective { get; set; } = "";
-    public string UserObjective { get; set; } = "You create modules for Narrator Bots.";
-    public string Personality { get; set; } = "You act like a Narrator.";
+    public string Name { get; set; }
+    public string Version { get; set; }
+    public string Objective { get; set; }
+    public string CurrentObjective { get; set; }
+    public string UserObjective { get; set; }
+    public string Personality { get; set; }
     public Dictionary<string, NarratorMod> ModsDirectory { get; set; } = new();
     public Dictionary<string, NarratorMod> RequiredMods { get; set; } = new();
     public Dictionary<string, NarratorMod> InstalledMods { get; set; } = new();
     public int MaxTotalTokens { get; set; } = 50000;
 
-    // Basic workspace and args
     private List<Message> workspace = new();
     private Dictionary<string, object> args = new();
 
-    // Token tracking
-    public record struct TokenUsage(int Input, int Output)
-    {
-        public int Total => Input + Output;
-    }
-    
     private TokenUsage _currentUsage;
     public int RemainingTokens => MaxTotalTokens - _currentUsage.Total;
-    
-    public void UpdateTokens(int input, int output)
+    public record struct TokenUsage
     {
-        _currentUsage = new TokenUsage(
-            _currentUsage.Input + input,
-            _currentUsage.Output + output
+        public int InputTokens { get; init; }
+        public int OutputTokens { get; init; }
+        public int CacheCreationInputTokens { get; init; }
+        public int CacheReadInputTokens { get; init; }
+
+        public int Total => InputTokens + OutputTokens;
+
+        public TokenUsage(MessageResponse response) : this(
+            response.Usage?.InputTokens ?? 0,
+            response.Usage?.OutputTokens ?? 0,
+            response.Usage?.CacheCreationInputTokens ?? 0,
+            response.Usage?.CacheReadInputTokens ?? 0)
+        { }
+
+        public TokenUsage(int inputTokens, int outputTokens, int cacheCreationTokens, int cacheReadTokens)
+        {
+            InputTokens = inputTokens;
+            OutputTokens = outputTokens;
+            CacheCreationInputTokens = cacheCreationTokens;
+            CacheReadInputTokens = cacheReadTokens;
+        }
+
+        public static TokenUsage operator +(TokenUsage a, TokenUsage b) => new(
+            a.InputTokens + b.InputTokens,
+            a.OutputTokens + b.OutputTokens,
+            a.CacheCreationInputTokens + b.CacheCreationInputTokens,
+            a.CacheReadInputTokens + b.CacheReadInputTokens
         );
     }
 }

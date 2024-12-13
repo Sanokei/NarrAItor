@@ -235,4 +235,5 @@ public static class NarratorApi
 
         return LLM.CreateToolFromFunc(name, $"Tool created from Lua function: {name}", wrappedFunction);
     }
+    
 }
